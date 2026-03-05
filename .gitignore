@@ -1,1 +1,21 @@
+# Node dependencies
+node_modules/
+dist/
+tmp/
+
+# Keys
+.env
+
+# iOS platform specifics
+ios/App/build/
+ios/Podfile.lock
+ios/Pods/
+ios/.xcworkspace
+
+# Xcode
+ios/*.xcodeproj/*
+!ios/*.xcodeproj/project.pbxproj
+
+# System
 .DS_Store
+Thumbs.db
