@@ -1,3 +1,6 @@
+const mapsApiKey = import.meta.env.GOOGLE_MAPS_KEY;
+console.log("Loaded Google Maps API Key")
+
 function initButtons() {
     const feedBtn = document.getElementById("icon-shell-0");
     const heartBtn = document.getElementById("icon-shell-1");

@@ -1,5 +1,5 @@
 {
   "appId": "com.lpcmse.ekistory",
   "appName": "Eki Story",
-  "webDir": "www"
+  "webDir": "dist"
 }
