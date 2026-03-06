@@ -1,21 +1,37 @@
-# Node dependencies
+# Node.js & Build Tools
 node_modules/
 dist/
 tmp/
+.eslintcache
 
-# Keys
+# Keys & Environment
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # iOS platform specifics
 ios/App/build/
 ios/Podfile.lock
 ios/Pods/
 ios/.xcworkspace
+ios/App/public/
 
 # Xcode
 ios/*.xcodeproj/*
 !ios/*.xcodeproj/project.pbxproj
 
-# System
+# Android platform specifics
+android/app/build/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/*.iml
+android/captures/
+android/app/src/main/assets/public/
+
+# System Files
 .DS_Store
 Thumbs.db
+*.log
