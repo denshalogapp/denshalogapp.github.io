@@ -1,0 +1,4 @@
+Company ID - Railroad Company IDs
+RR ID - Physical Railroad Grouping IDs
+Line ID - Train Line IDs
+Pref ID - Region ID

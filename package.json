@@ -4,7 +4,12 @@
     "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
     "@capacitor/ios": "^8.1.0",
-    "firebase": "^12.10.0"
+    "@googlemaps/markerclusterer": "^2.6.2",
+    "csv-parser": "^3.2.0",
+    "firebase": "^12.10.0",
+    "firebase-admin": "^13.7.0",
+    "google-translate-api-next": "^0.1.0",
+    "mongodb": "^7.1.0"
   },
   "devDependencies": {
     "vite": "^7.3.1"

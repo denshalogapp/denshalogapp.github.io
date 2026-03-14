@@ -1,0 +1,618 @@
+  Hokkaido Shinkansen
+  JR Hakodate Main Line (Hakodate–Oshamambe)
+  JR Hakodate Main Line (Oshamambe–Otaru)
+  JR Hakodate Main Line (Otaru–Asahikawa)
+  JR Muroran Main Line (Oshamambe/Muroran–Tomakomai)
+  JR Muroran Main Line (Tomakomai–Iwamizawa)
+  JR Nemuro Main Line (Takikawa–Furano)
+  JR Nemuro Main Line (Shintoku–Kushiro)
+  Hanasaki Line
+  JR Chitose Line
+  JR Sekisho Line
+  JR Hidaka Main Line
+  JR Sassho Line
+  JR Rumoi Main Line
+  JR Furano Line
+  JR Soya Main Line
+  JR Sekihoku Main Line
+  JR Senmo Main Line
+  JR Kaikyo Line
+  Tohoku Shinkansen
+  Joetsu Shinkansen
+  Joetsu Shinkansen (Gala-Yuzawa Branch)
+  Hokuriku Shinkansen
+  Yamagata Shinkansen
+  Akita Shinkansen
+  JR Tohoku Main Line (Kuroiso–Rifu/Morioka)
+  JR Tohoku Main Line (Hachinohe–Aomori)
+  Ueno-Tokyo Line
+  Utsunomiya Line
+  JR Joban Line (Ueno–Toride)
+  JR Joban Line (Toride–Iwaki)
+  JR Joban Line (Iwaki–Sendai)
+  JR Yamanote Line
+  JR Keihin-Tohoku Line
+  JR Chuo Line (Rapid)
+  JR Chuo–Sobu Line
+  JR Sobu Main Line
+  JR Tokaidō Main Line (Tokyo–Atami)
+  JR Yokosuka Line
+  JR Shonan-Shinjuku Line
+  JR Saikyo Line
+  JR Musashino Line
+  JR Yokohama Line
+  JR Nambu Line
+  JR Tsurumi Line
+  JR Sagami Line
+  JR Negishi Line
+  JR Keiyo Line
+  JR Ome Line
+  JR Itsukaichi Line
+  JR Hachiko Line (Hachioji–Komagawa)
+  JR Hachiko Line (Komagawa–Takasaki)
+  JR Kawagoe Line
+  JR Takasaki Line
+  JR Mito Line
+  JR Nikko Line
+  JR Ryomo Line
+  JR Agatsuma Line
+  JR Karasuyama Line
+  JR Suigun Line
+  JR Joetsu Line
+  JR Shinetsu Main Line
+  JR Shinetsu Main Line (Shinonoi–Nagano)
+  JR Shinetsu Main Line (Naoetsu–Niigata)
+  JR Echigo Line
+  JR Hakushin Line
+  JR Yahiko Line
+  JR Iiyama Line
+  JR Banetsu West Line (Koriyama–Aizu-Wakamatsu)
+  Forest, Water and Romance Railway
+  JR Tadami Line
+  JR Suigun Line
+  JR Senseki Line
+  JR Ishinomaki Line
+  JR Kesennuma Line
+  Dragon Rail Ofunato Line
+  JR Hachinohe Line
+  JR Tsugaru Line
+  JR Oga Line
+  JR Gono Line
+  JR Ou Main Line (Shinjo–Aomori)
+  Yamagata Line
+  JR Senzan Line
+  Fruit Line Aterazawa Line
+  JR Yonesaka Line
+  Oku-no-Hosomichi Mogamigawa Line
+  Oku-no-Hosomichi Yukemuri Line
+  Ginga Dream Line Kamaishi Line
+  JR Kitakami Line
+  JR Tazawako Line
+  Towada-Hachimantai Shikisai Line
+  JR Yamada Line
+  JR Uetsu Main Line
+  Hamanasu Bay Line (Ominato Line)
+  JR Sotobo Line
+  JR 内房線: JR Uchibo Line
+  JR Narita Line
+  JR Narita Express
+  JR Kashima Line
+  JR Kururi Line
+  JR Togane Line
+  Koumi Line
+  JR Chuo Main Line (Tokyo–Shiojiri)
+  Kita-Alps Line
+  JR Shinanoi Line
+  Tokaido Shinkansen
+  Chuo Shinkansen
+  JR Tokaido Main Line (Atami–Hamamatsu)
+  JR Tokaido Main Line (Hamamatsu–Gifu)
+  JR Tokaido Main Line (Gifu–Mino-Akasaka/Maibara)
+  JR Gotemba Line
+  JR Minobu Line
+  JR Iida Line (Toyohashi–Tenryukyo)
+  JR Iida Line (Tenryukyo–Tatsuno)
+  JR Takayama Main Line
+  JR Chuo Main Line (Nagoya–Shiojiri)
+  JR Taita Line
+  JR Taketoyo Line
+  JR Kansai Main Line (Nagoya–Kameyama)
+  JR Kisei Main Line
+  JR Meisho Line
+  JR Sangu Line
+  Sanyo Shinkansen
+  JR Hokuriku Main Line (Maibara–Tsunuga)
+  JR Obama Line
+  Kuzuryu Line
+  JR Kansai Main Line (Kameyama–Kamo)
+  JR Kusatsu Line
+  Biwako Line
+  JR Kyoto Line
+  JR Kobe Line (Osaka–Kobe)
+  JR Kobe Line (Kobe–Himeji)
+  JR Sanyo Main Line (Himeji–Okayama)
+  JR Sanyo Main Line (Okayama–Mihara)
+  JR Sanyo Main Line (Mihara–Iwakuni)
+  JR Sanyo Main Line (Iwakuni–Moji)
+  JR Sanyo Main Line (Hyogo–Wadamisaki)
+  Osaka Loop Line
+  JR Yumesaki Line
+  JR Hanwa Line (Tennoji–Wakayama)
+  Hagoromo Line
+  JR Kansai Airport Line
+  JR Tozai Line
+  Gakkentoshi Line
+  Yamatoji Line
+  Nara Line
+  Manyo-Mahoroba Line
+  JR Wakayama Line
+  Kinokuni Line
+  Kisei Main Line (Wakayama–Wakayamashi)
+  Osaka Higashi Line
+  JR Takarazuka Line
+  Fukuchiyama Line (Sasayamaguchi–Fukuchiyama)
+  JR Kakogawa Line
+  JR Bantan Line
+  JR Kishin Line (Himeji–Sayo)
+  JR Kishin Line (Sayo–Niimi)
+  JR Maizuru Line
+  Sagano Line
+  JR Sanin Main Line (Sonobe–Toyooka)
+  JR Sanin Main Line (Toyooka–Yonago)
+  JR Sanin Main Line (Yonago–Masuda)
+  JR Sanin Main Line (Masuda–Shimonoseki)
+  JR Hakubi Line
+  JR Inbi Line
+  JR Sakai Line
+  JR Kisuki Line
+  JR Uno Line
+  Seto-Ohashi Line
+  JR Kibi Line
+  JR Tsuyama Line
+  JR Geibi Line
+  JR Fukuen Line
+  JR Kure Line
+  JR Kabe Line
+  JR Yamaguchi Line
+  JR Ube Line
+  JR Onoda Line
+  JR Mine Line
+  JR Iwatoku Line
+  JR Kosei Line
+  JR Johana Line
+  JR Himi Line
+  JR Nanao Line
+  Tsuruga Port Line
+  JR Ako Line
+  JR Yosan Line
+  JR Yosan–Uchiko Line
+  JR Dosan Line
+  JR Kotoku Line
+  JR Naruto Line
+  JR Mugi Line
+  Yoshinogawa Blue Line
+  Shimanto Green Line
+  Kyushu Shinkansen
+  Nishi-Kyushu Shinkansen
+  JR Kagoshima Main Line (Shimonoseki/Mojiko–Hakata)
+  JR Kagoshima Main Line (Hakata–Yatsushiro)
+  JR Kagoshima Main Line (川内～鹿児島): JR Kagoshima Main Line (Sendai–Kagoshima)
+  JR Nippo Main Line (Mojiko–Saiki)
+  JR Nippo Main Line (Saiki–Kagoshima-Chuo)
+  JR Nagasaki Main Line (Tosu–Nagasaki)
+  JR Sasebo Line
+  JR Omura Line
+  JR Chikuhi Line (Meinohama–Nishi-Karatsu)
+  JR Chikuhi Line (Nishi-Karatsu–Imari)
+  JR Karatsu Line
+  JR Kyudai Main Line: Yufu Kogen Line
+  JR Hohi Main Line: Aso Kogen Line
+  Fukuhoku-Yutaka Line
+  Fukuhoku-Yutaka Line (Orio–Keisen)
+  Wakamatsu Line
+  Haruda Line
+  JR Kashii Line (Kashii–Umi)
+  Uminonakamichi Line
+  JR Hita-Hikosan Line
+  JR Gotoji Line
+  Misumi Line (Amakusa Misumi Line)
+  Ebino Kogen Line
+  Ebino Kogen Line (Yatsushiro–Yoshimatsu)
+  JR Hisatsu Line (Yoshimatsu–Hayato)
+  JR Nichinan Line
+  JR Miyazaki Airport Line
+  JR Ibusuki-Makurazaki Line
+  JR Hakata-Minami Line
+  Tobu Isesaki Line
+  Tobu Nikko Line
+  Tobu Urban Park Line (Tobu Noda Line)
+  Tobu Kameido Line
+  Tobu Daishi Line
+  Tobu Sano Line
+  Tobu Koizumi Line
+  Tobu Kiryu Line
+  Tobu Kinugawa Line
+  Tobu Utsunomiya Line
+  Tobu Tojo Line
+  Tobu Ogose Line
+  Seibu Ikebukuro Line
+  Seibu Toshima Line
+  Seibu Sayama Line
+  Seibu Yurakucho Line
+  Seibu Chichibu Line
+  Seibu Shinjuku Line
+  Seibu Haijima Line
+  Seibu Seibuen Line
+  Seibu Kokubunji Line
+  Seibu Tamako Line
+  Seibu Tamagawa Line
+  Leo Liner
+  Keisei Main Line
+  Keisei Oshiage Line
+  Keisei Kanamachi Line
+  Keisei Chiba Line
+  Keisei Chihara Line
+  Narita Sky Access Line
+  Keio Line
+  Keio New Line
+  Keio Sagamihara Line
+  Keio Takao Line
+  Keio Keibajo Line
+  Keio Dobutsuen Line
+  Keio Inokashira Line
+  Odakyu Line
+  Odakyu Enoshima Line
+  Odakyu Tama Line
+  Tokyu Toyoko Line
+  Tokyu Meguro Line
+  Tokyu Den-en-toshi Line
+  Tokyu Oimachi Line
+  Tokyu Ikegami Line
+  Tokyu Tamagawa Line
+  Tokyu Setagaya Line
+  Tokyu Kodomonokuni Line
+  Tokyu Shin-Yokohama Line
+  Keikyu Main Line
+  Keikyu Airport Line
+  Keikyu Daishi Line
+  Keikyu Zushi Line
+  Keikyu Kurihama Line
+  Tokyo Metro Ginza Line
+  Tokyo Metro Marunouchi Line
+  Tokyo Metro Hibiya Line
+  Tokyo Metro Tozai Line
+  Tokyo Metro Chiyoda Line
+  Tokyo Metro Yurakucho Line
+  Tokyo Metro Hanzomon Line
+  Tokyo Metro Namboku Line
+  Tokyo Metro Fukutoshin Line
+  Sotetsu Main Line
+  Sotetsu Izumino Line
+  Sotetsu–JR Direct Line
+  相鉄新横浜線 (Sotetsu Shin-Yokohama Line)
+  Meitetsu Nagoya Main Line
+  Meitetsu Toyokawa Line
+  Meitetsu Nishio Line
+  Meitetsu Gamagori Line
+  Meitetsu Mikawa Line
+  Meitetsu Toyota Line
+  Meitetsu Tokoname Line
+  Meitetsu Tokoname–Airport Line
+  Meitetsu Kowa Line
+  Meitetsu Chita Shin Line
+  Meitetsu Chikko Line
+  Meitetsu Seto Line
+  Meitetsu Tsushima Line
+  Meitetsu Bisai Line
+  Meitetsu Inuyama Line
+  Meitetsu Kakamigahara Line
+  Meitetsu Hiromi Line
+  Meitetsu Komaki Line
+  Meitetsu Takehana Line
+  Meitetsu Hashima Line
+  Inuyama Monorail
+  Kintetsu Namba Line
+  Kintetsu Nara Line
+  Kintetsu Kyoto Line
+  Kintetsu Kashihara Line
+  Kintetsu Tenri Line
+  Kintetsu Tawaramoto Line
+  Kintetsu Keihanna Line
+  Kintetsu Ikoma Line
+  Kintetsu Shigi Line
+  Kintetsu Osaka Line
+  Kintetsu Shigi Line
+  Kintetsu Nagano Line
+  Kintetsu Minami-Osaka Line
+  Kintetsu Yoshino Line
+  Kintetsu Domyoji Line
+  Kintetsu Gose Line
+  Kintetsu Nagoya Line
+  Kintetsu Yunoyama Line
+  Kintetsu Suzuka Line
+  Kintetsu Yamada Line
+  Kintetsu Toba Line
+  Kintetsu Shima Line
+  Ikoma Cable
+  Nishi-Shigi Cable
+  Kintetsu Yoro Line
+  Kintetsu Iga Line
+  Nankai Main Line
+  Nankai Airport Line
+  Nankai Wakayamako Line
+  Nankai Takashinohama Line
+  Nankai Kada Line
+  Nankai Tanagawa Line
+  Nankai Koya Line
+  Nankai Shiomibashi Line
+  Nankai Koyasan Cable
+  Keihan Main Line
+  Keihan Nakanoshima Line
+  Keihan Oto Line
+  Keihan Uji Line
+  Keihan Katano Line
+  Keihan Keishin Line
+  Keihan Ishiyama-Sakamoto Line
+  Iwashimizu-Hachimangu Sando Cable
+  Hankyu Kobe Main Line
+  Hankyu Itami Line
+  Hankyu Imazu Line
+  Hankyu Koyo Line
+  Hankyu Takarazuka Main Line
+  Hankyu Minoo Line
+  Hankyu Kyoto Main Line
+  Hankyu Senri Line
+  Hankyu Arashiyama Line
+  Hanshin Main Line
+  Hanshin Namba Line
+  Hanshin Mukogawa Line
+  Nishitetsu Tenjin–Omuta Line
+  Nishitetsu Dazaifu Line
+  Nishitetsu Amagi Line
+  Nishitetsu Kaizuguka Line
+  Sapporo Municipal Subway Namboku Line
+  Sapporo Municipal Subway Tozai Line
+  Sapporo Municipal Subway Toho Line
+  Sapporo Streetcar
+  Hakodate City Tram Line 2
+  Hakodate City Tram Line 5
+  Furusato-Ginga Line
+  Donan Isaribi Railway Line
+  Tsugaru Railway Line
+  Konan Railway Konan Line
+  Konan Railway Owani Line
+  Towada Kanko Electric Railway Line
+  Iwate Galaxy Railway Line
+  Aoimori Railway Line
+  Sanriku Railway Rias Line
+  Sanriku Railway North Rias Line
+  Akita Nairiku Line
+  Chokaisan Rokuroku Line
+  Flower Nagai Line
+  Kurihara Denen Railway Line
+  Abukuma Express Line
+  Sendai Municipal Subway Namboku Line
+  Sendai Municipal Subway Tozai Line
+  Fukushima Kotsu Iizaka Line
+  Aizu Railway Aizu Line
+  Haga–Utsunomiya LRT
+  Sendai Airport Line
+  Toei Asakusa Line
+  Toei Mita Line
+  Toei Shinjuku Line
+  Toei Oedo Line
+  Tokyo Sakura Tram / Toden Arakawa Line
+  Nippori-Toneri Liner
+  Chichibu Railway Chichibu Main Line
+  Saitama Railway Line
+  Isumi Line
+  Tsukuba Express
+  Minatomirai Line
+  Yurakucho Line
+  Watarase Keikoku Line
+  Yukarigaoka Line
+  Izu Hakone Railway Sunzu Line
+  Izu Hakone Railway Daiyuzan Line
+  Hitachinaka Seaside Railway Minato Line
+  Blue Line
+  Green Line
+  Kanazawa Seaside Line
+  Kanto Railway Joso Line
+  Kanto Railway Ryugasaki Line
+  Enoshima Electric Railway Line
+  New Shuttle
+  Kashima Railway Line
+  Kashima Rinkai Railway Oarai-Kashima Line
+  Shibayama Railway Line
+  Kominato Railway Line
+  Shonan Monorail
+  Joshin Electric Railway Line
+  Jomo Electric Railway Jomo Line
+  Keisei Matsudo Line
+  Moka Railway Moka Line
+  Chiba Urban Monorail Line 1
+  Chiba Urban Monorail Line 2
+  Ryutetsu Nagareyama Line
+  Tama Monorail
+  Choshi Electric Railway Line
+  Tokyo Monorail
+  Rinkai Line
+  Toyo Rapid Line
+  Hakone Tozan Railway Line
+  Hakone Tozan Cable Car
+  Hokuso Railway Hokuso Line
+  Hot Spa Line
+  Fujikyu Railway Line
+  Hokuetsu Express Hokuhoku Line
+  Shinano Railway Line
+  Kita-Shinano Line
+  Ueda Electric Railway Bessho Line
+  Nagano Electric Railway Nagano Line
+  Nagano Electric Railway Yashiro Line
+  Kamikochi Line
+  Toyama Chiho Railway Main Line
+  Toyama Chiho Railway Tateyama Line
+  Toyama Chiho Railway Fujikoshi–Kamitaki Line
+  Toyama Chiho Railway City Line (Routes 1 & 2)
+  Toyama Chiho Railway Toyama City Loop Line (Route 3)
+  Kamioka Railway Kamioka Line
+  Manyo Line
+  Kurobe Gorge Railway Main Line
+  Toyama Port Line
+  Hokuriku Railroad Ishikawa Line
+  Hokuriku Railroad Asanogawa Line
+  Nihonkai Hisui Line
+  Myoko Haneuma Line
+  Ainokaze Toyama Railway Line
+  IR Ishikawa Railway Line
+  Hapi Line Fukui
+  Noto Railway Nanao Line
+  Echizen Railway Katsuyama-Eiheiji Line
+  Echizen Railway Mikuni-Awara Line
+  Fukui Railway Fukubu Line
+  Izu Kyuko Line
+  Gakunan Railway Line
+  Shizuoka Railway Shizuoka–Shimizu Line
+  Tenryu Hamanako Line
+  Enshu Railway Line
+  Oigawa Railway Oigawa Main Line
+  Minami Alps Abt Line
+  Aonami Line
+  Tokai Transport Service Johoku Line
+  Aichi Loop Railway Line
+  Linimo
+  Nagoya Municipal Subway Higashiyama Line
+  Nagoya Municipal Subway Meijo Line
+  Nagoya Municipal Subway Meiko Line
+  Nagoya Municipal Subway Tsurumai Line
+  Nagoya Municipal Subway Sakura-dori Line
+  Nagoya Municipal Subway Kamiiida Line
+  Peach Liner
+  Toyohashi Railroad Atsumi Line
+  Toyohashi Railroad Azumada Main Line
+  Toyohashi Railroad Undokoen-mae Line
+  Yutorito Line
+  Akechi Railway Akechi Line
+  Nagaragawa Railway Etsumi-Nan Line
+  Tarumi Railway Tarumi Line
+  Sangi Railway Sangi Line
+  Sangi Railway Hokusei Line
+  Ise Railway Ise Line
+  Iga Railway Iga Line
+  Yoro Railway Yoro Line
+  Utsube Line
+  Hachioji Line
+  Ohmi Railway Main Line
+  Ohmi Railway Taga Line
+  Ohmi Railway Yokaichi Line
+  Shigaraki Kogen Railway Shigaraki Line
+  Sagano Scenic Railway Line
+  Eizan Electric Railway Eizan Main Line
+  Eizan Electric Railway Kurama Line
+  Miyafuku Line
+  Miyamai Line
+  Miyato Line
+  Kyoto Municipal Subway Karasuma Line
+  Kyoto Municipal Subway Tozai Line
+  Keifuku Electric Railway Arashiyama Main Line
+  Keifuku Electric Railway Kitano Line
+  Kita-Osaka Kyuko Railway
+  Semboku Line
+  Mizuma Railway Mizuma Line
+  Osaka Metro Midosuji Line
+  Osaka Metro Tanimachisuji Line
+  Osaka Metro Yotsubashi Line
+  Osaka Metro Chuo Line
+  Osaka Metro Sennichimae Line
+  Osaka Metro Sakaisuji Line
+  Osaka Metro Nagahoritsurumiryokuchi Line
+  Osaka Metro Imazatosuji Line
+  Osaka Metro Nanko Port Town Line
+  _(This entity transitioned to Osaka Metro, but specific historical lines may be referenced under this name in older data)_
+  Osaka Monorail Main Line
+  Osaka Monorail Saito Line
+  Hankai Tramway Uemachi Line
+  Hankai Tramway Hankai Line
+  Kobe Rapid Railway Tozai Line
+  Kobe Rapid Railway Namboku Line
+  Arima Line
+  Koen-Toshi Line
+  Ao Line
+  Hokushin Line
+  Sanyo Electric Railway Main Line
+  Sanyo Electric Railway Aboshi Line
+  Nose Electric Railway Myoken Line
+  Nose Electric Railway Nissei Line
+  Miki Railway Miki Line
+  Hojo Railway Hojo Line
+  Chizu Express Chizu Line
+  Kobe Municipal Subway Seishin Line
+  Kobe Municipal Subway Yamate Line
+  Yume Kamome
+  Port Liner
+  Rokko Liner
+  Kishū Railway Line
+  Kishigawa Line
+  Wakasa Line
+  Kitamatsue Line
+  Taisha Line
+  Mizushima Main Line
+  Ibara Line
+  Higashiyama Line
+  Seibibashi Line
+  Skyrail Midorizaka Line
+  Astram Line
+  Hiroshima Electric Railway Line 1 (Ujina Line)
+  Hiroshima Electric Railway Line 2 (Miyajima Line)
+  Hiroshima Electric Railway Line 3
+  Hiroshima Electric Railway Line 5 (Minami Line)
+  Hiroshima Electric Railway Line 6 (Eba Line)
+  Hiroshima Electric Railway Line 7
+  Hiroshima Electric Railway Line 8 (Yokogawa Line)
+  Hiroshima Electric Railway Line 9 (Hakushima Line)
+  Nishikigawa Seiryu Line
+  Awa-Muroto Seaside Line
+  Kotoden Kotohira Line
+  Kotoden Nagao Line
+  Kotoden Shido Line
+  Iyotetsu Gunchu Line
+  Iyotetsu Takahama Line
+  Iyotetsu Yokogawara Line
+  Iyotetsu Loop Line (Route 1)
+  Iyotetsu Loop Line (Route 2)
+  Iyotetsu Shiyakusho-mae Line (Route 3)
+  Iyotetsu Matsuyama Ekimae Line (Route 5)
+  Iyotetsu Honmachi Line (Route 6)
+  Nakamura Line
+  Sukumo Line
+  Gomen–Nahari Line
+  Gomen Line
+  Ino Line
+  Sambashi Line
+  Amagi Railway Amagi Line
+  Ita Line
+  Itoda Line
+  Tagawa Line
+  Mojiko Retro Sightseeing Line
+  Fukuoka Municipal Subway Airport Line
+  Fukuoka Municipal Subway Hakozaki Line
+  Fukuoka Municipal Subway Nanakuma Line
+  Kitakyushu Monorail
+  Chikuho Electric Railroad Line
+  Nishi-Kyushu Line (Arita–Imari)
+  Nishi-Kyushu Line (Imari–Sasebo)
+  Shimabara Railway Line
+  Nagasaki Electric Tramway Route 1
+  Nagasaki Electric Tramway Route 3
+  Nagasaki Electric Tramway Route 4
+  Nagasaki Electric Tramway Route 5
+  Kumamoto Electric Railway Main Line
+  Kumamoto Electric Railway Kamikumamoto Line
+  Takamori Line
+  湯前線: Yunomae Line
+  Hisatsu Orange Railway Line
+  Kumamoto City Tram Route A
+  Kumamoto City Tram Route B
+  Kagoshima City Tram Route 1
+  Kagoshima City Tram Route 2
+  Yui Rail
