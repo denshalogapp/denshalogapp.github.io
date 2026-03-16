@@ -133,6 +133,9 @@ export function showTooltip(latLng, data, type) {
     const statusEl = document.getElementById('tooltip-status');
     const container = document.getElementById('tooltip-container');
     const arrow = document.getElementById('tooltip-arrow');
+    const footer = document.getElementById('tooltip-footer');
+    const fractionEl = document.getElementById('tooltip-line-fraction');
+    const progressEl = document.getElementById('tooltip-line-progress');
 
     stationEl.innerText = data.stationName;
 
@@ -144,12 +147,10 @@ export function showTooltip(latLng, data, type) {
         statusEl.style.backgroundColor = visited ? "#B2FF59" : "#ECEFF1";
         statusEl.style.color = visited ? "black" : "#9E9E9E";
         
-        // --- ADD THIS BUTTON LOGIC ---
         const buttonText = visited ? 'Relock Station' : 'Unlock Station';
         const buttonColor = visited ? 'bg-red-500' : 'bg-green-500';
-        
-        // Assuming you have a div with id="tooltip-button-container" in your HTML
         const btnContainer = document.getElementById('tooltip-button-container');
+        
         if (btnContainer) {
             btnContainer.innerHTML = `
                 <button id="unlock-button" 
@@ -161,10 +162,50 @@ export function showTooltip(latLng, data, type) {
         }
         
         container.style.backgroundColor = 'white';
+        container.style.borderColor = 'black';
         arrow.style.backgroundColor = 'white';
+        arrow.style.borderRightColor = 'black';
+        arrow.style.borderBottomColor = 'black';
         container.style.boxShadow = `10px 10px 0px 0px ${data.color}`;
+        stationEl.style.color = 'black';
+        
+        if (fractionEl) fractionEl.classList.add('hidden');
+        if (progressEl) progressEl.classList.add('hidden');
+        if (footer) footer.classList.remove('hidden');
+
     } else {
         window.activeStationId = null;
+        
+        container.style.backgroundColor = 'black';
+        container.style.borderColor = data.color;
+        arrow.style.backgroundColor = 'black';
+        arrow.style.borderRightColor = data.color;
+        arrow.style.borderBottomColor = data.color;
+        container.style.boxShadow = `10px 10px 0px 0px ${data.color}`;
+        stationEl.style.color = 'white';
+
+        if (fractionEl) {
+            fractionEl.classList.remove('hidden');
+            fractionEl.innerHTML = `
+                <div class="flex items-baseline mt-1">
+                    <span class="text-3xl leading-none">${data.visitedCount}</span>
+                    <span class="mx-0.5 opacity-40 text-xl leading-none">/</span>
+                    <span class="text-sm opacity-60 leading-none">${data.totalCount}</span>
+                </div>
+            `;
+        }
+
+        if (progressEl) {
+            progressEl.classList.remove('hidden');
+            progressEl.innerHTML = '';
+            for(let i = 0; i < data.totalCount; i++) {
+                const segment = document.createElement('div');
+                segment.className = `flex-1 h-full rounded-sm ${i < data.visitedCount ? 'bg-[#B2FF59]' : 'bg-gray-700'}`;
+                progressEl.appendChild(segment);
+            }
+        }
+
+        if (footer) footer.classList.add('hidden');
     }
 
     // Positioning Logic

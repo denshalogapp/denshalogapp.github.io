@@ -39,7 +39,8 @@ export async function syncLineData() {
                 lines[String(docSnap.id)] = {
                     color: colorStr.startsWith('#') ? colorStr : '#' + colorStr,
                     name_en: data.line_name_en || `Line ${docSnap.id}`,
-                    total_stations: data.station_count || 0 
+                    total_stations: data.station_count || 0,
+                    company_id: data.company_id || data.company_cd || ""
                 };
             }
         });

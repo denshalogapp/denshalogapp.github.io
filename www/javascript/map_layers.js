@@ -30,13 +30,17 @@ export function renderPolylines(map, allJoins, stationLookup, lineColors, showTo
                 polyline.setOptions({ strokeWeight: Math.max(6, activeZoom * 0.6), zIndex: 1 });
             });
             polyline.addListener('click', (e) => {
-                showTooltip(e.latLng, {
-                    stationName: lineData?.name_en || "Unknown Line", 
-                    color: lineData?.color || "#000000",
-                    count: `0/${lineData?.total_stations || 0}`, 
-                    modelsSpotted: "0" 
-                }, 'line');
-            });
+    const stationsOnLine = window.allStations.filter(s => String(s.line_id) === lineKey);
+    const visitedCount = stationsOnLine.filter(s => window.isVisited?.(s.id)).length;
+    const totalCount = lineData?.total_stations || stationsOnLine.length;
+
+    showTooltip(e.latLng, {
+        stationName: lineData?.name_en || "Unknown Line", 
+        color: lineData?.color || "#000000",
+        visitedCount: visitedCount,
+        totalCount: totalCount
+    }, 'line');
+});
             
             if (!polylinesByLine[lineKey]) polylinesByLine[lineKey] = [];
             polylinesByLine[lineKey].push(polyline);
