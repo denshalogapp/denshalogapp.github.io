@@ -97,6 +97,7 @@ function initButtons() {
             feedContainer.classList.remove("pointer-events-none");
             feedBtn.classList.add("bg-[#FF80AB]");
             feedBtn.querySelector("svg").classList.add("text-white");
+            hideTopBar();
         }
     };
 
@@ -108,6 +109,7 @@ function initButtons() {
             listContainer.classList.remove("pointer-events-none");
             listBtn.classList.add("bg-[#40C4FF]");
             listBtn.querySelector("svg").classList.add("text-white");
+            hideTopBar();
         }
     };
 
