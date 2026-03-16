@@ -32,6 +32,7 @@ window.initMap = async function() {
         ]
     });
     placesService = new google.maps.places.PlacesService(map);
+    window.map = map;
 
     const [stations, lines, joins] = await Promise.all([
         syncStationData(),
@@ -64,6 +65,8 @@ window.initMap = async function() {
     allStations = stations;
     lineColors = lines;
     allJoins = joins;
+    window.allStations = allStations;
+    window.lineColors = lineColors;
 
     allStations.forEach(s => {
         stationLookup[String(s.station_id || s.id)] = s;
