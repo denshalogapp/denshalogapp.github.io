@@ -9,38 +9,40 @@ function initButtons() {
     if (!feedBtn || !listBtn) return;
 
     function resetUI() {
-        feedContainer.classList.add("hidden");
-        listContainer.classList.add("hidden");
+        feedContainer.classList.add("-translate-x-full");
+        feedContainer.classList.add("pointer-events-none");
+        listContainer.classList.add("translate-x-full");
+        listContainer.classList.add("pointer-events-none");
 
         const feedIcon = feedBtn.querySelector("svg");
-        feedBtn.classList.remove("bg-[#2BAAE2]");
+        feedBtn.classList.remove("bg-[#FF80AB]");
         feedIcon.classList.remove("text-white");
-        feedIcon.classList.add("text-[#2BAAE2]");
+        feedIcon.classList.add("text-[#FF80AB]");
 
         const listIcon = listBtn.querySelector("svg");
-        listBtn.classList.remove("bg-[#fbb03c]");
+        listBtn.classList.remove("bg-[#40C4FF]");
         listIcon.classList.remove("text-white");
-        listIcon.classList.add("text-[#fbb03c]");
+        listIcon.classList.add("text-[#40C4FF]");
     }
 
     feedBtn.onclick = function() {
-        const currentlyHidden = feedContainer.classList.contains("hidden");
+        const isOpen = !feedContainer.classList.contains("-translate-x-full");
         resetUI();
-        
-        if (currentlyHidden) {
-            feedContainer.classList.remove("hidden");
-            feedBtn.classList.add("bg-[#2BAAE2]");
+        if (!isOpen) {
+            feedContainer.classList.remove("-translate-x-full");
+            feedContainer.classList.remove("pointer-events-none");
+            feedBtn.classList.add("bg-[#FF80AB]");
             feedBtn.querySelector("svg").classList.add("text-white");
         }
     };
 
     listBtn.onclick = function() {
-        const currentlyHidden = listContainer.classList.contains("hidden");
+        const isOpen = !listContainer.classList.contains("translate-x-full");
         resetUI();
-        
-        if (currentlyHidden) {
-            listContainer.classList.remove("hidden");
-            listBtn.classList.add("bg-[#fbb03c]");
+        if (!isOpen) {
+            listContainer.classList.remove("translate-x-full");
+            listContainer.classList.remove("pointer-events-none");
+            listBtn.classList.add("bg-[#40C4FF]");
             listBtn.querySelector("svg").classList.add("text-white");
         }
     };
