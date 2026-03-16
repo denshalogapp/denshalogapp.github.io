@@ -71,6 +71,7 @@ window.initMap = async function() {
 
     allStations.forEach(s => {
         stationLookup[String(s.station_id || s.id)] = s;
+        stationLookup[String(s.id)] = s;
     });
 
     renderPolylines();
