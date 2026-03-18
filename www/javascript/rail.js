@@ -93,6 +93,24 @@ window.initMap = async function() {
         await toggleStation(id); // Calls the toggle logic
     }
 });
+
+Object.values(coordMap).forEach(group => {
+    if (group.length === 1) {
+        group[0].displayLat = Number(group[0].lat);
+        group[0].displayLon = Number(group[0].lon);
+    } else {
+        group.sort((a, b) => String(a.line_id).localeCompare(String(b.line_id)));
+
+        const radius = 0.00015;
+        group.forEach((station, index) => {
+            const angle = (index / group.length) * Math.PI * 2;
+            station.displayLat = Number(station.lat) + (Math.cos(angle) * radius);
+            const latRad = Number(station.lat) * (Math.PI / 180);
+            station.displayLon = Number(station.lon) + ((Math.sin(angle) * radius) / Math.cos(latRad));
+        });
+    }
+});
+
 };
 
 function initUserTracking() {
@@ -136,11 +154,24 @@ export function showTooltip(latLng, data, type) {
     const footer = document.getElementById('tooltip-footer');
     const fractionEl = document.getElementById('tooltip-line-fraction');
     const progressEl = document.getElementById('tooltip-line-progress');
+    
+    // New selectors for the pill
+    const linePill = document.getElementById('tooltip-line-pill');
+    const lineText = document.getElementById('tooltip-line-text');
 
     stationEl.innerText = data.stationName;
 
     if (type === 'station') {
         window.activeStationId = data.stationId;
+        
+        // Show and style the line name pill
+        if (linePill) {
+            linePill.classList.remove('hidden');
+            linePill.style.backgroundColor = data.color; // Set pill color to line color
+        }
+        if (lineText) {
+            lineText.innerText = data.lineName; // Set the line name text
+        }
 
         const visited = window.isVisited?.(data.stationId);
         statusEl.innerText = visited ? "VISITED" : "LOCKED";
@@ -156,7 +187,7 @@ export function showTooltip(latLng, data, type) {
                 <button id="unlock-button" 
                         data-station-id="${data.stationId}" 
                         class="${buttonColor} text-white font-black px-4 py-2 mt-2 rounded-full uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all w-full">
-                    ${buttonText}
+                     ${buttonText}
                 </button>
             `;
         }
@@ -172,10 +203,12 @@ export function showTooltip(latLng, data, type) {
         if (fractionEl) fractionEl.classList.add('hidden');
         if (progressEl) progressEl.classList.add('hidden');
         if (footer) footer.classList.remove('hidden');
-
     } else {
         window.activeStationId = null;
         
+        // Hide pill when clicking on a line (already shows fraction/progress)
+        if (linePill) linePill.classList.add('hidden');
+
         container.style.backgroundColor = 'black';
         container.style.borderColor = data.color;
         arrow.style.backgroundColor = 'black';
@@ -183,7 +216,7 @@ export function showTooltip(latLng, data, type) {
         arrow.style.borderBottomColor = data.color;
         container.style.boxShadow = `10px 10px 0px 0px ${data.color}`;
         stationEl.style.color = 'white';
-
+        
         if (fractionEl) {
             fractionEl.classList.remove('hidden');
             fractionEl.innerHTML = `

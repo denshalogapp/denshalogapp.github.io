@@ -15,8 +15,10 @@ export function renderPolylines(map, allJoins, stationLookup, lineColors, showTo
             const strokeColor = lineData?.color || "#000000";
 
             const polyline = new google.maps.Polyline({
-                path: [{ lat: station1.displayLat, lng: station1.displayLon }, { lat: station2.displayLat, lng: station2.displayLon }],
-                geodesic: true,
+path: [
+        { lat: station1.displayLat, lng: station1.displayLon }, 
+        { lat: station2.displayLat, lng: station2.displayLon }
+    ],                geodesic: true,
                 strokeColor: strokeColor,
                 strokeOpacity: 1.0,
                 strokeWeight: lineStroke,
