@@ -74,8 +74,12 @@ window.initMap = async function() {
     initUserTracking();
 
     // Map Event Listeners
+    let idleTimer;
     map.addListener('idle', () => {
-        renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
+        }, 150);
     });
 
     map.addListener('dragstart', () => {
