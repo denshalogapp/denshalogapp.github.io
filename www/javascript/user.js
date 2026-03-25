@@ -1,8 +1,9 @@
 import { db } from './firebase.js';
-import { doc, onSnapshot, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, collection, onSnapshot, setDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 export const CURRENT_USER_ID = "liam_test_user";
 export let visitedStations = []; 
+export let userStamps = {};
 
 export function isVisited(stationId) {
     return visitedStations.includes(String(stationId));
@@ -24,6 +25,18 @@ export async function toggleStation(stationId) {
     }
 }
 
+export async function saveStamp(stationId, base64Image) {
+    if (!stationId) return;
+    const stampRef = doc(db, 'users', CURRENT_USER_ID, 'stamps', String(stationId));
+    await setDoc(stampRef, { image: base64Image, timestamp: Date.now() });
+}
+
+export async function deleteStamp(stationId) {
+    if (!stationId) return;
+    const stampRef = doc(db, 'users', CURRENT_USER_ID, 'stamps', String(stationId));
+    await deleteDoc(stampRef);
+}
+
 export function initProfileSync() {
     const userRef = doc(db, 'users', CURRENT_USER_ID);
     onSnapshot(userRef, (docSnap) => {
@@ -33,7 +46,6 @@ export function initProfileSync() {
             
             if (window.renderVisibleMarkers) window.renderVisibleMarkers();
             
-            // NEW: Dispatch an event so the list knows to re-render
             window.dispatchEvent(new CustomEvent('visitedDataUpdated'));
          
             const streakEl = document.querySelector('#profile-container span.text-2xl:nth-of-type(1)');
@@ -41,5 +53,14 @@ export function initProfileSync() {
             if (streakEl) streakEl.innerText = `${data.streak || 0}d`;
             if (alertsEl) alertsEl.innerText = data.alerts || 0;
         }
+    });
+
+    const stampsRef = collection(db, 'users', CURRENT_USER_ID, 'stamps');
+    onSnapshot(stampsRef, (snapshot) => {
+        userStamps = {};
+        snapshot.forEach((doc) => {
+            userStamps[doc.id] = doc.data().image;
+        });
+        window.dispatchEvent(new CustomEvent('visitedDataUpdated'));
     });
 }

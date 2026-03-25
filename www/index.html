@@ -226,6 +226,41 @@
     </div>
 </div>
 
+<div id="stamp-modal-container" class="fixed inset-0 z-[110] bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col items-center justify-center p-6">
+        <div class="relative w-full max-w-sm flex flex-col items-center gap-6">
+            <button id="close-stamp-modal" class="absolute -top-12 right-0 w-10 h-10 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="4"><path d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <img id="stamp-modal-image" src="" class="w-full object-contain bg-white border-[5px] border-black rounded-[24px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-h-[60vh]">
+            <button id="delete-stamp-btn" class="w-full bg-[#FF5252] border-[4px] border-black rounded-xl py-3 text-white font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all flex items-center justify-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete Stamp
+            </button>
+        </div>
+    </div>
+
+    <div id="delete-confirm-modal" class="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col items-center justify-center p-6">
+        <div id="delete-confirm-box" class="w-full max-w-sm bg-white border-[5px] border-black rounded-[32px] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-6 text-center transform transition-transform scale-95 duration-300">
+            <div class="w-16 h-16 bg-[#FF5252] border-[4px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-2">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="text-3xl font-black uppercase tracking-tighter leading-tight">Delete Stamp?</h3>
+            <p class="text-sm font-bold text-gray-500 uppercase tracking-tighter leading-tight">This action cannot be undone. Are you absolutely sure?</p>
+            <div class="flex gap-4 w-full mt-2">
+                <button id="cancel-delete-btn" class="flex-1 bg-gray-200 border-[4px] border-black rounded-xl py-3 text-black font-black text-lg uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                    Cancel
+                </button>
+                <button id="confirm-delete-btn" class="flex-1 bg-[#FF5252] border-[4px] border-black rounded-xl py-3 text-white font-black text-lg uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="javascript/firebase.js"></script>
     <script type="module" src="javascript/user.js"></script>
     <script type="module" src="javascript/map_utils.js"></script>
