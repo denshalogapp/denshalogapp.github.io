@@ -1,47 +1,16 @@
 import { state, selectors } from './list_state.js';
 import { userStamps, saveStamp, deleteStamp } from './user.js';
+import { loadOpenCV } from './stamp_cv_loader.js';
+import { startCamera, stopCamera } from './stamp_camera.js';
+import { startCrop, handleCropInput, finalizeWarp } from './stamp_crop.js';
+import { setupRefinement, handleRefineDraw, processFinalStamp } from './stamp_refine.js';
 
-let cameraStream = null;
-let currentStationId = null;
-let currentLineId = null;
-let viewingStationId = null;
-
-async function compressImage(dataUrl, maxWidth = 600, maxHeight = 600, quality = 0.6) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-            let width = img.width;
-            let height = img.height;
-
-            if (width > height) {
-                if (width > maxWidth) {
-                    height = Math.round((height * maxWidth) / width);
-                    width = maxWidth;
-                }
-            } else {
-                if (height > maxHeight) {
-                    width = Math.round((width * maxHeight) / height);
-                    height = maxHeight;
-                }
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            resolve(canvas.toDataURL('image/jpeg', quality));
-        };
-        img.src = dataUrl;
-    });
-}
+let currentStationId = null, currentLineId = null, viewingStationId = null, isFlipped = false, currentTool = 'brush';
 
 export async function showLineDetail(lineId) {
     currentLineId = lineId;
     const line = state.localLines[lineId];
     const stations = state.localStations.filter(s => String(s.line_id) === String(lineId));
-
     selectors.detailContainer.classList.remove('hidden');
 
     const visitedCount = stations.filter(s => window.isVisited?.(s.id) || userStamps[s.id]).length;
@@ -55,210 +24,127 @@ export async function showLineDetail(lineId) {
 
     selectors.detailStationsList.innerHTML = stations.map(s => {
         const visited = window.isVisited?.(s.id) || userStamps[s.id];
-        const dotColor = visited ? '#B2FF59' : '#FFFFFF';
-        const stationName = s.station_name_en || s.station_name_jp;
-        const lineColor = line.color || '#B2FF59';
-        
-        const stampHtml = userStamps[s.id] ? `
-            <div class="mt-4 mb-2 cursor-pointer stamp-image-preview transition-transform active:scale-95 w-max" data-station-id="${s.id}">
-                <img src="${userStamps[s.id]}" class="w-32 h-32 object-cover border-[4px] border-black rounded-[20px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white -rotate-2 hover:rotate-0 transition-transform">
+        const stampHtml = userStamps[s.id] ? `<div class="mt-4 mb-2 cursor-pointer stamp-image-preview transition-transform active:scale-95 w-max" data-station-id="${s.id}"><img src="${userStamps[s.id]}" class="w-32 h-32 object-cover border-[4px] border-black rounded-[20px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white -rotate-2"></div>` : '';
+        return `<div class="flex items-start gap-6 ml-1 station-item">
+            <div class="station-dot w-8 h-8 rounded-full border-[4px] border-black shrink-0 mt-1 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]" style="background-color: ${visited ? '#B2FF59' : '#FFF'}"></div>
+            <div class="flex flex-col gap-2 w-full">
+                <span class="text-xl font-black uppercase tracking-tight pt-2">${s.station_name_en || s.station_name_jp}</span>
+                <button class="add-stamp-btn bg-white border-[3px] border-black px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all w-max mt-1" data-station-id="${s.id}" data-station-name="${s.station_name_en}" data-line-color="${line.color || '#B2FF59'}">+ Add Stamp</button>
+                ${stampHtml}
             </div>
-        ` : '';
-
-        return `
-            <div class="flex items-start gap-6 ml-1 station-item">
-                <div class="station-dot w-8 h-8 rounded-full border-[4px] border-black z-20 shrink-0 mt-1 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]" 
-                     style="background-color: ${dotColor}">
-                </div>
-                <div class="flex flex-col gap-2 w-full">
-                    <span class="text-xl font-black uppercase tracking-tight leading-none pt-2">
-                        ${stationName}
-                    </span>
-                    <button class="add-stamp-btn bg-white border-[3px] border-black px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all w-max mt-1" data-station-id="${s.id}" data-station-name="${stationName}" data-line-color="${lineColor}">
-                        + Add Stamp
-                    </button>
-                    ${stampHtml}
-                </div>
-            </div>
-        `;
+        </div>`;
     }).join('');
-
+    
     requestAnimationFrame(() => {
         const dots = selectors.detailStationsList.querySelectorAll('.station-dot');
-        if (dots.length > 0) {
-            const firstDot = dots[0];
-            const lastDot = dots[dots.length - 1];
-            const centerOffset = 20; 
-
-            selectors.detailTrackLine.style.top = `${firstDot.offsetTop + centerOffset}px`;
-            selectors.detailTrackLine.style.height = `${lastDot.offsetTop - firstDot.offsetTop}px`;
+        if (dots.length > 1) {
+            selectors.detailTrackLine.style.top = `${dots[0].offsetTop + 20}px`;
+            selectors.detailTrackLine.style.height = `${dots[dots.length - 1].offsetTop - dots[0].offsetTop}px`;
         }
         selectors.detailContainer.classList.remove('translate-x-full');
     });
 }
 
 export function initStampScanner() {
-    const addStampContainer = document.getElementById("add-stamp-container");
-    const closeStampBtn = document.getElementById("close-stamp-btn");
-    const videoElement = document.getElementById("camera-feed");
-    const canvasElement = document.getElementById("camera-canvas");
-    const placeholderElement = document.getElementById("camera-placeholder");
-    const captureBtn = document.getElementById("capture-stamp-btn");
-    const uploadInput = document.getElementById("upload-stamp-input");
-    const stampStationPill = document.getElementById("stamp-station-pill");
+    const els = {
+        addCont: document.getElementById("add-stamp-container"),
+        video: document.getElementById("camera-feed"),
+        canvas: document.getElementById("camera-canvas"),
+        place: document.getElementById("camera-placeholder"),
+        pill: document.getElementById("stamp-station-pill"),
+        cropCont: document.getElementById("crop-container"),
+        cropCanvas: document.getElementById("crop-canvas"),
+        cropWork: document.getElementById("crop-workspace"),
+        refineCont: document.getElementById("refinement-container"),
+        refineBase: document.getElementById("refine-base-canvas"),
+        refineMask: document.getElementById("refine-mask-canvas"),
+        refineWork: document.getElementById("refine-workspace"),
+        ink: document.getElementById("ink-color-picker"),
+        brush: document.getElementById("brush-size"),
+        press: document.getElementById("ink-pressure"),
+        flip: document.getElementById("tool-flip"),
+        modalCont: document.getElementById("stamp-modal-container"),
+        modalImg: document.getElementById("stamp-modal-image")
+    };
+
+    selectors.detailStationsList.addEventListener('click', e => {
+        const btn = e.target.closest('.add-stamp-btn');
+        if (btn) {
+            currentStationId = btn.dataset.stationId;
+            els.pill.innerText = btn.dataset.stationName;
+            els.pill.style.backgroundColor = btn.dataset.lineColor;
+            els.addCont.classList.remove("translate-y-full", "pointer-events-none");
+            startCamera(els.video, els.place, loadOpenCV);
+            return;
+        }
+        const prev = e.target.closest('.stamp-image-preview');
+        if (prev) {
+            viewingStationId = prev.dataset.stationId;
+            els.modalImg.src = userStamps[viewingStationId];
+            els.modalCont.classList.remove('opacity-0', 'pointer-events-none');
+        }
+    });
+
+    document.getElementById("capture-stamp-btn").onclick = () => {
+        els.canvas.width = els.video.videoWidth; els.canvas.height = els.video.videoHeight;
+        els.canvas.getContext('2d').drawImage(els.video, 0, 0);
+        const url = els.canvas.toDataURL('image/jpeg', 0.8);
+        stopCamera(els.video, els.place);
+        els.addCont.classList.add("translate-y-full", "pointer-events-none");
+        startCrop(url, els.cropWork, els.cropCanvas);
+    };
+
+    document.getElementById("upload-stamp-input").onchange = (e) => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            stopCamera(els.video, els.place);
+            els.addCont.classList.add("translate-y-full", "pointer-events-none");
+            startCrop(event.target.result, els.cropWork, els.cropCanvas);
+            e.target.value = '';
+        };
+        reader.readAsDataURL(file);
+    };
+
+    els.cropCanvas.onmousedown = (e) => handleCropInput(e, els.cropCanvas, 'down');
+    els.cropCanvas.ontouchstart = (e) => handleCropInput(e, els.cropCanvas, 'down');
+    window.addEventListener('mousemove', (e) => handleCropInput(e, els.cropCanvas, 'move'));
+    window.addEventListener('touchmove', (e) => handleCropInput(e, els.cropCanvas, 'move'), { passive: false });
+    window.addEventListener('mouseup', () => handleCropInput(null, null, 'up'));
+    window.addEventListener('touchend', () => handleCropInput(null, null, 'up'));
+
+    document.getElementById("confirm-crop-btn").onclick = () => {
+        if (!window.isCVModelLoaded) return;
+        const warped = finalizeWarp(els.cropCanvas);
+        els.cropCont.classList.add('translate-y-full', 'pointer-events-none');
+        setupRefinement(warped, els.refineBase, els.refineMask, els.refineWork);
+    };
+
+    els.refineMask.onmousedown = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'start');
+    els.refineMask.ontouchstart = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'start');
+    els.refineMask.onmousemove = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'move');
+    els.refineMask.ontouchmove = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'move'), { passive: false };
+    window.addEventListener('mouseup', () => handleRefineDraw(null, null, null, null, 'stop'));
+    window.addEventListener('touchend', () => handleRefineDraw(null, null, null, null, 'stop'));
+
+    document.getElementById("tool-brush").onclick = () => { currentTool = 'brush'; document.getElementById("tool-brush").classList.add('border-white'); document.getElementById("tool-erase").classList.remove('border-white'); };
+    document.getElementById("tool-erase").onclick = () => { currentTool = 'erase'; document.getElementById("tool-erase").classList.add('border-white'); document.getElementById("tool-brush").classList.remove('border-white'); };
+    els.flip.onclick = () => { isFlipped = !isFlipped; els.refineBase.style.transform = els.refineMask.style.transform = `scaleX(${isFlipped ? -1 : 1})`; };
     
-    const stampModal = document.getElementById("stamp-modal-container");
-    const stampModalImage = document.getElementById("stamp-modal-image");
-    const closeStampModalBtn = document.getElementById("close-stamp-modal");
-    const deleteStampBtn = document.getElementById("delete-stamp-btn");
+    document.getElementById("confirm-refine-btn").onclick = async () => {
+        await saveStamp(currentStationId, processFinalStamp(els.refineBase, els.refineMask, els.ink.value, isFlipped, els.press.value));
+        els.refineCont.classList.add('translate-y-full', 'pointer-events-none');
+        isFlipped = false; els.refineBase.style.transform = els.refineMask.style.transform = 'scaleX(1)';
+        showLineDetail(currentLineId);
+    };
 
-    const deleteConfirmModal = document.getElementById("delete-confirm-modal");
-    const deleteConfirmBox = document.getElementById("delete-confirm-box");
-    const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
-    const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
-
-    async function startCamera() {
-        try {
-            cameraStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: 'environment' } 
-            });
-            videoElement.srcObject = cameraStream;
-            videoElement.classList.remove('hidden');
-            placeholderElement.classList.add('hidden');
-        } catch (err) {
-            placeholderElement.innerHTML = `<span class="text-red-500 font-black uppercase text-center px-4">Camera Access Denied</span>`;
-        }
-    }
-
-    function stopCamera() {
-        if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-            cameraStream = null;
-        }
-        videoElement.classList.add('hidden');
-        placeholderElement.classList.remove('hidden');
-    }
-
-    if (selectors.detailStationsList) {
-        selectors.detailStationsList.addEventListener('click', (e) => {
-            const addBtn = e.target.closest('.add-stamp-btn');
-            if (addBtn) {
-                currentStationId = addBtn.getAttribute('data-station-id');
-                
-                if (stampStationPill) {
-                    stampStationPill.innerText = addBtn.getAttribute('data-station-name');
-                    stampStationPill.style.backgroundColor = addBtn.getAttribute('data-line-color');
-                }
-
-                addStampContainer.classList.remove("translate-y-full", "pointer-events-none");
-                startCamera();
-                return;
-            }
-
-            const stampPreview = e.target.closest('.stamp-image-preview');
-            if (stampPreview && stampModal) {
-                viewingStationId = stampPreview.getAttribute('data-station-id');
-                stampModalImage.src = userStamps[viewingStationId];
-                stampModal.classList.remove('opacity-0', 'pointer-events-none');
-            }
-        });
-    }
-
-    if (closeStampBtn) {
-        closeStampBtn.addEventListener('click', () => {
-            addStampContainer.classList.add("translate-y-full", "pointer-events-none");
-            stopCamera();
-        });
-    }
-
-    if (captureBtn) {
-        captureBtn.addEventListener('click', async () => {
-            if (!cameraStream) return;
-            
-            let width = videoElement.videoWidth;
-            let height = videoElement.videoHeight;
-            const maxDim = 600;
-            
-            if (width > maxDim || height > maxDim) {
-                const ratio = Math.min(maxDim / width, maxDim / height);
-                width = Math.round(width * ratio);
-                height = Math.round(height * ratio);
-            }
-            
-            const context = canvasElement.getContext('2d');
-            canvasElement.width = width;
-            canvasElement.height = height;
-            context.drawImage(videoElement, 0, 0, width, height);
-            
-            const imageDataUrl = canvasElement.toDataURL('image/jpeg', 0.6);
-            await saveStamp(currentStationId, imageDataUrl);
-            
-            stopCamera();
-            addStampContainer.classList.add("translate-y-full", "pointer-events-none");
-            showLineDetail(currentLineId);
-        });
-    }
-
-    if (uploadInput) {
-        uploadInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                const originalDataUrl = event.target.result;
-                const compressedDataUrl = await compressImage(originalDataUrl, 600, 600, 0.6);
-                
-                await saveStamp(currentStationId, compressedDataUrl);
-                
-                stopCamera();
-                addStampContainer.classList.add("translate-y-full", "pointer-events-none");
-                uploadInput.value = '';
-                showLineDetail(currentLineId);
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-
-    if (closeStampModalBtn) {
-        closeStampModalBtn.addEventListener('click', () => {
-            stampModal.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => { stampModalImage.src = ''; }, 300);
-        });
-    }
-
-    if (deleteStampBtn) {
-        deleteStampBtn.addEventListener('click', () => {
-            deleteConfirmModal.classList.remove('opacity-0', 'pointer-events-none');
-            setTimeout(() => {
-                deleteConfirmBox.classList.remove('scale-95');
-                deleteConfirmBox.classList.add('scale-100');
-            }, 10);
-        });
-    }
-
-    if (cancelDeleteBtn) {
-        cancelDeleteBtn.addEventListener('click', () => {
-            deleteConfirmBox.classList.remove('scale-100');
-            deleteConfirmBox.classList.add('scale-95');
-            setTimeout(() => {
-                deleteConfirmModal.classList.add('opacity-0', 'pointer-events-none');
-            }, 300);
-        });
-    }
-
-    if (confirmDeleteBtn) {
-        confirmDeleteBtn.addEventListener('click', async () => {
+    document.getElementById("close-stamp-btn").onclick = () => { els.addCont.classList.add("translate-y-full", "pointer-events-none"); stopCamera(els.video, els.place); };
+    document.getElementById("close-stamp-modal").onclick = () => els.modalCont.classList.add('opacity-0', 'pointer-events-none');
+    document.getElementById("delete-stamp-btn").onclick = async () => {
+        if(confirm("Delete this stamp?")) {
             await deleteStamp(viewingStationId);
-            
-            deleteConfirmBox.classList.remove('scale-100');
-            deleteConfirmBox.classList.add('scale-95');
-            deleteConfirmModal.classList.add('opacity-0', 'pointer-events-none');
-            
-            stampModal.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => { stampModalImage.src = ''; }, 300);
-            
+            els.modalCont.classList.add('opacity-0', 'pointer-events-none');
             showLineDetail(currentLineId);
-        });
-    }
+        }
+    };
 }
