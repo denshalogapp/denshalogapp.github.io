@@ -92,5 +92,22 @@ export function handleSearch(e) {
 window.selectLineAndScroll = (lineId) => {
     selectors.searchDropdown.classList.add('hidden');
     selectors.searchInput.value = '';
-    // Add logic to scroll to and highlight card if needed
+    
+    const card = document.getElementById(`line-card-${lineId}`);
+    if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        const originalTransition = card.style.transition;
+        card.style.transition = 'all 0.3s ease';
+        card.style.borderColor = '#FF80AB';
+        card.style.transform = 'scale(1.02)';
+        
+        setTimeout(() => {
+            card.style.borderColor = 'black';
+            card.style.transform = 'scale(1)';
+            setTimeout(() => {
+                card.style.transition = originalTransition;
+            }, 300);
+        }, 1500);
+    }
 };

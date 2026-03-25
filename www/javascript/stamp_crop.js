@@ -54,6 +54,7 @@ function drawUI(canvas) {
 }
 
 export function handleCropInput(e, canvas, type) {
+    if (type === 'move' && e && e.cancelable) e.preventDefault();
     if (type === 'up') { activePoint = -1; return; }
     if (!canvas || !e || (type === 'move' && activePoint === -1)) return;
 
@@ -87,5 +88,17 @@ export function finalizeWarp(canvas) {
     const out = document.createElement('canvas');
     cv.imshow(out, warped);
     [srcMat, dstMat, M, imgMat, warped].forEach(m => m.delete());
-    return out.toDataURL('image/jpeg', 0.9);
+    
+    const MAX_SIZE = 600;
+    let finalCanvas = out;
+    if (out.width > MAX_SIZE || out.height > MAX_SIZE) {
+        const scale = Math.min(MAX_SIZE / out.width, MAX_SIZE / out.height);
+        finalCanvas = document.createElement('canvas');
+        finalCanvas.width = out.width * scale;
+        finalCanvas.height = out.height * scale;
+        const ctx = finalCanvas.getContext('2d');
+        ctx.drawImage(out, 0, 0, finalCanvas.width, finalCanvas.height);
+    }
+
+    return finalCanvas.toDataURL('image/jpeg', 0.7);
 }

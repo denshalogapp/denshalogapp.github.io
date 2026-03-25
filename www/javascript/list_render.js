@@ -2,6 +2,10 @@ import { state, selectors, RENDER_CHUNK_SIZE } from './list_state.js';
 import { showLineDetail } from './list_detail.js';
 
 export function renderLines() {
+    if (selectors.sentinel.parentNode) {
+        state.observer.unobserve(selectors.sentinel);
+    }
+    
     selectors.linesContainer.innerHTML = '';
     state.renderIndex = 0;
     
@@ -9,13 +13,10 @@ export function renderLines() {
 
     if (!state.currentPrefId && !state.currentCompId) {
         targetLineIds = targetLineIds.filter(id => {
-            // Find all stations belonging to this line
             const stationsOnLine = state.localStations.filter(s => String(s.line_id) === String(id));
-            // Check if at least one station ID exists in window.visitedStations
             return stationsOnLine.some(s => window.isVisited && window.isVisited(s.id));
         });
     } else {
-        // Filter logic for Prefectures and Companies
         if (state.currentPrefId) {
             const prefLineIds = new Set(state.localStations
                 .filter(s => String(s.pref_cd || s.pref_id) === String(state.currentPrefId))

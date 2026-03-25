@@ -13,6 +13,16 @@ let activeLineFilter = null;
 let isFollowingUser = true;
 let currentPosition = null;
 
+window.filterToLine = function(lineId) {
+    activeLineFilter = String(lineId);
+    window.renderVisibleMarkers();
+};
+
+window.clearLineFilter = function() {
+    activeLineFilter = null;
+    window.renderVisibleMarkers();
+};
+
 window.initMap = async function() {
     const centerView = { lat: 35.6325, lng: 139.6525 };
     map = new google.maps.Map(document.getElementById("map"), {

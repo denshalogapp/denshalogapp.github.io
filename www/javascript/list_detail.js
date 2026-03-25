@@ -1,11 +1,12 @@
 import { state, selectors } from './list_state.js';
-import { userStamps, saveStamp, deleteStamp } from './user.js';
+import { userStamps, userStampOriginals, saveStamp, deleteStamp } from './user.js';
 import { loadOpenCV } from './stamp_cv_loader.js';
 import { startCamera, stopCamera } from './stamp_camera.js';
 import { startCrop, handleCropInput, finalizeWarp } from './stamp_crop.js';
-import { setupRefinement, handleRefineDraw, processFinalStamp } from './stamp_refine.js';
+import { setupRefinement, handleRefineDraw, processFinalStamp, applyLiveContrast, triggerUndo, toggleInvert } from './stamp_refine.js';
 
 let currentStationId = null, currentLineId = null, viewingStationId = null, isFlipped = false, currentTool = 'brush';
+let currentOriginalImage = null;
 
 export async function showLineDetail(lineId) {
     currentLineId = lineId;
@@ -13,7 +14,7 @@ export async function showLineDetail(lineId) {
     const stations = state.localStations.filter(s => String(s.line_id) === String(lineId));
     selectors.detailContainer.classList.remove('hidden');
 
-    const visitedCount = stations.filter(s => window.isVisited?.(s.id) || userStamps[s.id]).length;
+    const visitedCount = stations.filter(s => window.isVisited?.(s.id) || userStamps[String(s.id)]).length;
     const totalCount = line.total_stations || stations.length;
 
     selectors.detailLineName.innerText = line.name_en;
@@ -23,8 +24,8 @@ export async function showLineDetail(lineId) {
     selectors.detailTrackLine.style.backgroundColor = line.color || '#4b5563';
 
     selectors.detailStationsList.innerHTML = stations.map(s => {
-        const visited = window.isVisited?.(s.id) || userStamps[s.id];
-        const stampHtml = userStamps[s.id] ? `<div class="mt-4 mb-2 cursor-pointer stamp-image-preview transition-transform active:scale-95 w-max" data-station-id="${s.id}"><img src="${userStamps[s.id]}" class="w-32 h-32 object-cover border-[4px] border-black rounded-[20px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white -rotate-2"></div>` : '';
+        const visited = window.isVisited?.(s.id) || userStamps[String(s.id)];
+        const stampHtml = userStamps[String(s.id)] ? `<div class="mt-4 mb-2 cursor-pointer stamp-image-preview transition-transform active:scale-95 w-max relative z-10" data-station-id="${s.id}"><img src="${userStamps[String(s.id)]}" class="w-32 h-32 object-cover border-[4px] border-black rounded-[20px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white -rotate-2 pointer-events-none"></div>` : '';
         return `<div class="flex items-start gap-6 ml-1 station-item">
             <div class="station-dot w-8 h-8 rounded-full border-[4px] border-black shrink-0 mt-1 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]" style="background-color: ${visited ? '#B2FF59' : '#FFF'}"></div>
             <div class="flex flex-col gap-2 w-full">
@@ -61,27 +62,37 @@ export function initStampScanner() {
         refineWork: document.getElementById("refine-workspace"),
         ink: document.getElementById("ink-color-picker"),
         brush: document.getElementById("brush-size"),
-        press: document.getElementById("ink-pressure"),
+        contrast: document.getElementById("stamp-contrast"),
         flip: document.getElementById("tool-flip"),
+        invert: document.getElementById("tool-invert"),
         modalCont: document.getElementById("stamp-modal-container"),
         modalImg: document.getElementById("stamp-modal-image")
     };
 
+    const deleteConfirmModal = document.getElementById("delete-confirm-modal");
+    const deleteConfirmBox = document.getElementById("delete-confirm-box");
+
     selectors.detailStationsList.addEventListener('click', e => {
         const btn = e.target.closest('.add-stamp-btn');
         if (btn) {
-            currentStationId = btn.dataset.stationId;
+            currentStationId = String(btn.dataset.stationId);
             els.pill.innerText = btn.dataset.stationName;
             els.pill.style.backgroundColor = btn.dataset.lineColor;
             els.addCont.classList.remove("translate-y-full", "pointer-events-none");
             startCamera(els.video, els.place, loadOpenCV);
             return;
         }
+        
         const prev = e.target.closest('.stamp-image-preview');
         if (prev) {
-            viewingStationId = prev.dataset.stationId;
-            els.modalImg.src = userStamps[viewingStationId];
-            els.modalCont.classList.remove('opacity-0', 'pointer-events-none');
+            e.preventDefault();
+            e.stopPropagation();
+            viewingStationId = String(prev.dataset.stationId);
+            const stampData = userStamps[viewingStationId];
+            if (stampData) {
+                els.modalImg.src = stampData;
+                els.modalCont.classList.remove('opacity-0', 'pointer-events-none');
+            }
         }
     });
 
@@ -113,38 +124,84 @@ export function initStampScanner() {
     window.addEventListener('mouseup', () => handleCropInput(null, null, 'up'));
     window.addEventListener('touchend', () => handleCropInput(null, null, 'up'));
 
+    els.contrast.addEventListener('input', (e) => {
+        applyLiveContrast(els.refineMask, e.target.value);
+    });
+
     document.getElementById("confirm-crop-btn").onclick = () => {
         if (!window.isCVModelLoaded) return;
         const warped = finalizeWarp(els.cropCanvas);
+        currentOriginalImage = warped;
         els.cropCont.classList.add('translate-y-full', 'pointer-events-none');
         setupRefinement(warped, els.refineBase, els.refineMask, els.refineWork);
     };
 
-    els.refineMask.onmousedown = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'start');
-    els.refineMask.ontouchstart = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'start');
-    els.refineMask.onmousemove = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'move');
-    els.refineMask.ontouchmove = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'move'), { passive: false };
-    window.addEventListener('mouseup', () => handleRefineDraw(null, null, null, null, 'stop'));
-    window.addEventListener('touchend', () => handleRefineDraw(null, null, null, null, 'stop'));
+    els.refineMask.onmousedown = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'start', isFlipped);
+    els.refineMask.ontouchstart = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'start', isFlipped);
+    els.refineMask.onmousemove = (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'move', isFlipped);
+    els.refineMask.addEventListener('touchmove', (e) => handleRefineDraw(e, els.refineMask, currentTool, els.brush.value, 'move', isFlipped), { passive: false });
+    window.addEventListener('mouseup', () => handleRefineDraw(null, null, null, null, 'stop', isFlipped));
+    window.addEventListener('touchend', () => handleRefineDraw(null, null, null, null, 'stop', isFlipped));
 
     document.getElementById("tool-brush").onclick = () => { currentTool = 'brush'; document.getElementById("tool-brush").classList.add('border-white'); document.getElementById("tool-erase").classList.remove('border-white'); };
     document.getElementById("tool-erase").onclick = () => { currentTool = 'erase'; document.getElementById("tool-erase").classList.add('border-white'); document.getElementById("tool-brush").classList.remove('border-white'); };
     els.flip.onclick = () => { isFlipped = !isFlipped; els.refineBase.style.transform = els.refineMask.style.transform = `scaleX(${isFlipped ? -1 : 1})`; };
-    
+    document.getElementById("tool-undo").onclick = () => {
+        triggerUndo(els.refineMask, els.contrast.value);
+    };
+    els.invert.onclick = () => {
+        toggleInvert(els.refineMask, els.contrast.value);
+    };
+
     document.getElementById("confirm-refine-btn").onclick = async () => {
-        await saveStamp(currentStationId, processFinalStamp(els.refineBase, els.refineMask, els.ink.value, isFlipped, els.press.value));
+        await saveStamp(currentStationId, processFinalStamp(els.refineBase, els.refineMask, els.ink.value, isFlipped), currentOriginalImage);
         els.refineCont.classList.add('translate-y-full', 'pointer-events-none');
         isFlipped = false; els.refineBase.style.transform = els.refineMask.style.transform = 'scaleX(1)';
         showLineDetail(currentLineId);
     };
 
     document.getElementById("close-stamp-btn").onclick = () => { els.addCont.classList.add("translate-y-full", "pointer-events-none"); stopCamera(els.video, els.place); };
+    
+    document.getElementById("cancel-crop-btn").onclick = () => {
+        els.cropCont.classList.add("translate-y-full", "pointer-events-none");
+    };
+
+    document.getElementById("cancel-refine-btn").onclick = () => {
+        els.refineCont.classList.add("translate-y-full", "pointer-events-none");
+    };
+
     document.getElementById("close-stamp-modal").onclick = () => els.modalCont.classList.add('opacity-0', 'pointer-events-none');
-    document.getElementById("delete-stamp-btn").onclick = async () => {
-        if(confirm("Delete this stamp?")) {
-            await deleteStamp(viewingStationId);
-            els.modalCont.classList.add('opacity-0', 'pointer-events-none');
-            showLineDetail(currentLineId);
+    
+    document.getElementById("edit-stamp-btn").onclick = () => {
+        els.modalCont.classList.add('opacity-0', 'pointer-events-none');
+        const stampData = userStamps[viewingStationId];
+        const originalData = userStampOriginals[viewingStationId] || stampData; 
+        
+        if (originalData) {
+            currentStationId = viewingStationId;
+            currentOriginalImage = originalData;
+            setupRefinement(originalData, els.refineBase, els.refineMask, els.refineWork);
         }
+    };
+
+    document.getElementById("delete-stamp-btn").onclick = () => {
+        deleteConfirmModal.classList.remove('opacity-0', 'pointer-events-none');
+        deleteConfirmBox.classList.remove('scale-95');
+        deleteConfirmBox.classList.add('scale-100');
+    };
+
+    document.getElementById("cancel-delete-btn").onclick = () => {
+        deleteConfirmModal.classList.add('opacity-0', 'pointer-events-none');
+        deleteConfirmBox.classList.add('scale-95');
+        deleteConfirmBox.classList.remove('scale-100');
+    };
+
+    document.getElementById("confirm-delete-btn").onclick = async () => {
+        await deleteStamp(viewingStationId);
+        deleteConfirmModal.classList.add('opacity-0', 'pointer-events-none');
+        deleteConfirmBox.classList.add('scale-95');
+        deleteConfirmBox.classList.remove('scale-100');
+        els.modalCont.classList.add('opacity-0', 'pointer-events-none');
+        showLineDetail(currentLineId);
     };
 }

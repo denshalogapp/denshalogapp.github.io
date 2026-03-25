@@ -261,11 +261,21 @@
             <canvas id="refine-mask-canvas" class="absolute touch-none cursor-crosshair object-contain"></canvas>
         </div>
 
-<div class="p-8 bg-[#1a1a1a] border-t-[4px] border-black flex flex-col gap-4 z-10">
-    <div class="flex items-center justify-center gap-4">
+<div class="flex items-center justify-center gap-2">
         <button id="tool-brush" class="flex-1 h-14 rounded-xl bg-[#40C4FF] border-[4px] border-white text-black font-black uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Brush</button>
         <button id="tool-erase" class="flex-1 h-14 rounded-xl bg-gray-800 border-[4px] border-transparent text-white font-black uppercase tracking-tighter">Erase</button>
-        <button id="tool-flip" class="w-14 h-14 rounded-xl bg-gray-700 border-[4px] border-black flex items-center justify-center text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">
+        <button id="tool-undo" class="w-14 h-14 shrink-0 rounded-xl bg-gray-700 border-[4px] border-black flex items-center justify-center text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+        </button>
+        <button id="tool-invert" class="w-14 h-14 shrink-0 rounded-xl bg-gray-700 border-[4px] border-black flex items-center justify-center text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" />
+                <path d="M12 2A10 10 0 0 0 12 22V2Z" fill="currentColor"/>
+            </svg>
+        </button>
+        <button id="tool-flip" class="w-14 h-14 shrink-0 rounded-xl bg-gray-700 border-[4px] border-black flex items-center justify-center text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path d="M8 7h8m0 0l-3-3m3 3l-3 3m-2 10H6m0 0l3-3m-3 3l3 3"/></svg>
         </button>
     </div>
@@ -276,8 +286,8 @@
             <input type="range" id="brush-size" min="5" max="100" value="30" class="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer">
         </div>
         <div class="bg-gray-800 p-3 rounded-xl border-[3px] border-black flex flex-col gap-2">
-            <span class="text-white text-[10px] font-black uppercase tracking-widest">Pressure</span>
-            <input type="range" id="ink-pressure" min="10" max="100" value="85" class="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer">
+            <span class="text-white text-[10px] font-black uppercase tracking-widest">Contrast</span>
+            <input type="range" id="stamp-contrast" min="0" max="200" value="100" class="w-full h-2 bg-black rounded-lg appearance-none cursor-pointer">
         </div>
     </div>
 
@@ -286,6 +296,7 @@
         <input type="color" id="ink-color-picker" value="#FF5252" class="w-full h-10 border-none bg-transparent cursor-pointer">
     </div>
 </div>
+</div>
 
 <div id="stamp-modal-container" class="fixed inset-0 z-[110] bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col items-center justify-center p-6">
     <div class="relative w-full max-w-sm flex flex-col items-center gap-6">
@@ -293,9 +304,15 @@
             <svg class="w-5 h-5" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="4"><path d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
         <img id="stamp-modal-image" src="" class="w-full object-contain bg-white border-[5px] border-black rounded-[24px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-h-[60vh]">
-        <button id="delete-stamp-btn" class="w-full bg-[#FF5252] border-[4px] border-black rounded-xl py-3 text-white font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2">
-            Delete Stamp
-        </button>
+        
+        <div class="flex gap-4 w-full">
+            <button id="edit-stamp-btn" class="flex-1 bg-[#40C4FF] border-[4px] border-black rounded-xl py-3 text-black font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2">
+                Edit
+            </button>
+            <button id="delete-stamp-btn" class="flex-1 bg-[#FF5252] border-[4px] border-black rounded-xl py-3 text-white font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2">
+                Delete
+            </button>
+        </div>
     </div>
 </div>
 
