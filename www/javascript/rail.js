@@ -13,7 +13,6 @@ let activeLineFilter = null;
 let isFollowingUser = true;
 let currentPosition = null;
 
-// The main entry point called by Google Maps API
 window.initMap = async function() {
     const centerView = { lat: 35.6325, lng: 139.6525 };
     map = new google.maps.Map(document.getElementById("map"), {
@@ -33,8 +32,6 @@ window.initMap = async function() {
 
     window.map = map;
 
-    // Load Data from Firestore/Cache
-    // Fetch config once and share it across all sync functions to avoid 3 redundant round trips
     const configSnap = await getDoc(doc(db, 'metadata', 'config'));
     const [stations, lines, joins] = await Promise.all([
         syncStationData(configSnap),
@@ -42,7 +39,6 @@ window.initMap = async function() {
         syncJoinData(configSnap)
     ]);
 
-    // Handle overlapping stations (same Lat/Lon)
     const coordMap = {};
     stations.forEach(s => {
         const key = `${s.lat}_${s.lon}`;
@@ -58,48 +54,44 @@ window.initMap = async function() {
         stationLookup[String(s.id)] = s;
     });
 
-    // Initial Rendering
+    Object.values(coordMap).forEach(group => {
+        if (group.length === 1) {
+            group[0].displayLat = Number(group[0].lat);
+            group[0].displayLon = Number(group[0].lon);
+        } else {
+            group.sort((a, b) => String(a.line_id).localeCompare(String(b.line_id)));
+
+            const radius = 0.00015;
+            group.forEach((station, index) => {
+                const angle = (index / group.length) * Math.PI * 2;
+                station.displayLat = Number(station.lat) + (Math.cos(angle) * radius);
+                const latRad = Number(station.lat) * (Math.PI / 180);
+                station.displayLon = Number(station.lon) + ((Math.sin(angle) * radius) / Math.cos(latRad));
+            });
+        }
+    });
+
     renderPolylines(map, joins, stationLookup, lineColors, showTooltip);
     initUserTracking();
 
-    // Map Event Listeners
     map.addListener('idle', () => {
         renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
     });
 
     map.addListener('dragstart', () => {
-        isFollowingUser = false; // Unlock from user position when scrolling manually
+        isFollowingUser = false;
         hideTooltip();
     });
-    
 
     map.addListener('click', hideTooltip);
 
     document.getElementById('map-tooltip').addEventListener('click', async (e) => {
-    const btn = e.target.closest('#unlock-button');
-    if (btn) {
-        const id = btn.getAttribute('data-station-id');
-        await toggleStation(id); // Calls the toggle logic
-    }
-});
-
-Object.values(coordMap).forEach(group => {
-    if (group.length === 1) {
-        group[0].displayLat = Number(group[0].lat);
-        group[0].displayLon = Number(group[0].lon);
-    } else {
-        group.sort((a, b) => String(a.line_id).localeCompare(String(b.line_id)));
-
-        const radius = 0.00015;
-        group.forEach((station, index) => {
-            const angle = (index / group.length) * Math.PI * 2;
-            station.displayLat = Number(station.lat) + (Math.cos(angle) * radius);
-            const latRad = Number(station.lat) * (Math.PI / 180);
-            station.displayLon = Number(station.lon) + ((Math.sin(angle) * radius) / Math.cos(latRad));
-        });
-    }
-});
-
+        const btn = e.target.closest('#unlock-button');
+        if (btn) {
+            const id = btn.getAttribute('data-station-id');
+            await toggleStation(id);
+        }
+    });
 };
 
 function initUserTracking() {
@@ -116,7 +108,7 @@ function initUserTracking() {
                     map.panTo(pos);
                 }
             },
-            (err) => console.warn("Geolocation error:", err),
+            (err) => console.warn(err),
             { enableHighAccuracy: true }
         );
     }
@@ -129,7 +121,6 @@ window.centerOnUser = function() {
     }
 };
 
-// Global function to allow user.js to force a re-draw
 window.renderVisibleMarkers = () => {
     renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
 };
@@ -143,8 +134,6 @@ export function showTooltip(latLng, data, type) {
     const footer = document.getElementById('tooltip-footer');
     const fractionEl = document.getElementById('tooltip-line-fraction');
     const progressEl = document.getElementById('tooltip-line-progress');
-    
-    // New selectors for the pill
     const linePill = document.getElementById('tooltip-line-pill');
     const lineText = document.getElementById('tooltip-line-text');
 
@@ -153,13 +142,12 @@ export function showTooltip(latLng, data, type) {
     if (type === 'station') {
         window.activeStationId = data.stationId;
         
-        // Show and style the line name pill
         if (linePill) {
             linePill.classList.remove('hidden');
-            linePill.style.backgroundColor = data.color; // Set pill color to line color
+            linePill.style.backgroundColor = data.color;
         }
         if (lineText) {
-            lineText.innerText = data.lineName; // Set the line name text
+            lineText.innerText = data.lineName;
         }
 
         const visited = window.isVisited?.(data.stationId);
@@ -195,7 +183,6 @@ export function showTooltip(latLng, data, type) {
     } else {
         window.activeStationId = null;
         
-        // Hide pill when clicking on a line (already shows fraction/progress)
         if (linePill) linePill.classList.add('hidden');
 
         container.style.backgroundColor = 'black';
@@ -230,7 +217,6 @@ export function showTooltip(latLng, data, type) {
         if (footer) footer.classList.add('hidden');
     }
 
-    // Positioning Logic
     const projection = map.getProjection();
     const bounds = map.getBounds();
     const scale = Math.pow(2, map.getZoom());
@@ -260,7 +246,6 @@ export function hideTooltip() {
     }
 }
 
-// The script loader that starts the whole map process
 const gScript = document.createElement('script');
 gScript.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}&callback=initMap&libraries=places&loading=async`;
 gScript.async = true;
