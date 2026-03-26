@@ -5,6 +5,7 @@ export const CURRENT_USER_ID = "liam_test_user";
 export let visitedStations = []; 
 export const userStamps = {};
 export const userStampOriginals = {}; 
+export const userStampDates = {};
 
 export function isVisited(stationId) {
     return visitedStations.includes(String(stationId));
@@ -50,11 +51,13 @@ export function initProfileSync() {
     onSnapshot(stampsRef, (snapshot) => {
         Object.keys(userStamps).forEach(key => delete userStamps[key]);
         Object.keys(userStampOriginals).forEach(key => delete userStampOriginals[key]);
+        Object.keys(userStampDates).forEach(key => delete userStampDates[key]);
         
         snapshot.forEach((doc) => {
             const data = doc.data();
             userStamps[doc.id] = data.image;
             if (data.original) userStampOriginals[doc.id] = data.original;
+            if (data.timestamp) userStampDates[doc.id] = data.timestamp;
         });
         
         window.dispatchEvent(new CustomEvent('visitedDataUpdated'));

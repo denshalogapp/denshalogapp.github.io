@@ -1,5 +1,5 @@
 import { state, selectors } from './list_state.js';
-import { userStamps, userStampOriginals, saveStamp, deleteStamp } from './user.js';
+import { userStamps, userStampOriginals, userStampDates, saveStamp, deleteStamp } from './user.js';
 import { loadOpenCV } from './stamp_cv_loader.js';
 import { startCamera, stopCamera } from './stamp_camera.js';
 import { startCrop, handleCropInput, finalizeWarp } from './stamp_crop.js';
@@ -47,7 +47,7 @@ export async function showLineDetail(lineId) {
 }
 
 export function initStampScanner() {
-    const els = {
+const els = {
         addCont: document.getElementById("add-stamp-container"),
         video: document.getElementById("camera-feed"),
         canvas: document.getElementById("camera-canvas"),
@@ -66,7 +66,8 @@ export function initStampScanner() {
         flip: document.getElementById("tool-flip"),
         invert: document.getElementById("tool-invert"),
         modalCont: document.getElementById("stamp-modal-container"),
-        modalImg: document.getElementById("stamp-modal-image")
+        modalImg: document.getElementById("stamp-modal-image"),
+        modalDate: document.getElementById("stamp-modal-date")
     };
 
     const deleteConfirmModal = document.getElementById("delete-confirm-modal");
@@ -91,6 +92,17 @@ export function initStampScanner() {
             const stampData = userStamps[viewingStationId];
             if (stampData) {
                 els.modalImg.src = stampData;
+                
+                if (els.modalDate) {
+                    const ts = userStampDates[viewingStationId];
+                    if (ts) {
+                        const d = new Date(ts);
+                        els.modalDate.innerText = `Date Stamped: ${d.toLocaleDateString()}`;
+                    } else {
+                        els.modalDate.innerText = "";
+                    }
+                }
+
                 els.modalCont.classList.remove('opacity-0', 'pointer-events-none');
             }
         }

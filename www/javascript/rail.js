@@ -96,10 +96,19 @@ window.initMap = async function() {
     map.addListener('click', hideTooltip);
 
     document.getElementById('map-tooltip').addEventListener('click', async (e) => {
-        const btn = e.target.closest('#unlock-button');
-        if (btn) {
-            const id = btn.getAttribute('data-station-id');
+        const markBtn = e.target.closest('#mark-visited-btn');
+        if (markBtn) {
+            const id = markBtn.getAttribute('data-station-id');
             await toggleStation(id);
+            hideTooltip();
+        }
+
+        const unmarkBtn = e.target.closest('#unmark-station-btn');
+        if (unmarkBtn) {
+            window.stationToUnmark = unmarkBtn.getAttribute('data-station-id');
+            document.getElementById('unmark-confirm-modal').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('unmark-confirm-box').classList.remove('scale-95');
+            document.getElementById('unmark-confirm-box').classList.add('scale-100');
         }
     });
 };
@@ -138,7 +147,6 @@ window.renderVisibleMarkers = () => {
 export function showTooltip(latLng, data, type) {
     const tooltip = document.getElementById('map-tooltip');
     const stationEl = document.getElementById('tooltip-station');
-    const statusEl = document.getElementById('tooltip-status');
     const container = document.getElementById('tooltip-container');
     const arrow = document.getElementById('tooltip-arrow');
     const footer = document.getElementById('tooltip-footer');
@@ -146,6 +154,7 @@ export function showTooltip(latLng, data, type) {
     const progressEl = document.getElementById('tooltip-line-progress');
     const linePill = document.getElementById('tooltip-line-pill');
     const lineText = document.getElementById('tooltip-line-text');
+    const statusContainer = document.getElementById('tooltip-status-container');
 
     stationEl.innerText = data.stationName;
 
@@ -161,22 +170,24 @@ export function showTooltip(latLng, data, type) {
         }
 
         const visited = window.isVisited?.(data.stationId);
-        statusEl.innerText = visited ? "VISITED" : "LOCKED";
-        statusEl.style.backgroundColor = visited ? "#B2FF59" : "#ECEFF1";
-        statusEl.style.color = visited ? "black" : "#9E9E9E";
         
-        const buttonText = visited ? 'Relock Station' : 'Unlock Station';
-        const buttonColor = visited ? 'bg-red-500' : 'bg-green-500';
-        const btnContainer = document.getElementById('tooltip-button-container');
-        
-        if (btnContainer) {
-            btnContainer.innerHTML = `
-                <button id="unlock-button" 
-                        data-station-id="${data.stationId}" 
-                        class="${buttonColor} text-white font-black px-4 py-2 mt-2 rounded-full uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all w-full">
-                     ${buttonText}
-                </button>
-            `;
+        if (statusContainer) {
+            if (visited) {
+                statusContainer.innerHTML = `
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="bg-[#B2FF59] border-[3px] border-black px-6 py-2 rounded-2xl text-xs font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Visited</span>
+                        <button id="unmark-station-btn" data-station-id="${data.stationId}" class="w-9 h-9 bg-[#FF5252] border-[3px] border-black rounded-full flex items-center justify-center text-white font-black hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                `;
+            } else {
+                statusContainer.innerHTML = `
+                    <button id="mark-visited-btn" data-station-id="${data.stationId}" class="bg-[#40C4FF] border-[3px] border-black px-6 py-2 rounded-2xl text-xs font-black uppercase text-black hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                        Mark as Visited?
+                    </button>
+                `;
+            }
         }
         
         container.style.backgroundColor = 'white';
@@ -255,6 +266,31 @@ export function hideTooltip() {
         window.activeStationId = null;
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const cancelUnmarkBtn = document.getElementById('cancel-unmark-btn');
+    const confirmUnmarkBtn = document.getElementById('confirm-unmark-btn');
+    
+    if (cancelUnmarkBtn && confirmUnmarkBtn) {
+        cancelUnmarkBtn.addEventListener('click', () => {
+            document.getElementById('unmark-confirm-modal').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('unmark-confirm-box').classList.add('scale-95');
+            document.getElementById('unmark-confirm-box').classList.remove('scale-100');
+        });
+        
+        confirmUnmarkBtn.addEventListener('click', async () => {
+            if (window.stationToUnmark) {
+                await toggleStation(window.stationToUnmark);
+                window.stationToUnmark = null;
+            }
+            document.getElementById('unmark-confirm-modal').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('unmark-confirm-box').classList.add('scale-95');
+            document.getElementById('unmark-confirm-box').classList.remove('scale-100');
+            hideTooltip();
+            window.renderVisibleMarkers();
+        });
+    }
+});
 
 const gScript = document.createElement('script');
 gScript.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}&callback=initMap&libraries=places&loading=async`;

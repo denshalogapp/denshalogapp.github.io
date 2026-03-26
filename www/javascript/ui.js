@@ -4,6 +4,7 @@ export function initButtons() {
     const listBtn = document.getElementById("icon-shell-2");
     const userBtn = document.getElementById("user-shell");
     const profileExitBtn = document.getElementById("profile-exit");
+    const refreshBtn = document.getElementById("refresh-db");
 
     const feedContainer = document.getElementById("feed-container");
     const listContainer = document.getElementById("list-container");
@@ -83,6 +84,13 @@ export function initButtons() {
     if (profileExitBtn) {
         profileExitBtn.onclick = function() {
             resetUI();
+        };
+    }
+
+    if (refreshBtn) {
+        refreshBtn.onclick = function() {
+            localStorage.clear();
+            window.location.reload();
         };
     }
 }
