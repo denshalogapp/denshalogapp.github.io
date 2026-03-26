@@ -26,6 +26,7 @@ export const selectors = {
     parentListContainer: document.getElementById('list-container'),
     detailContainer: document.getElementById('line-detail-container'),
     detailStationsList: document.getElementById('detail-stations-list'),
+    detailModelsList: document.getElementById('detail-models-list'),
     detailLineName: document.getElementById('detail-line-name'),
     detailFraction: document.getElementById('detail-fraction'),
     detailProgressBar: document.getElementById('detail-progress-bar'),

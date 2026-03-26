@@ -9,7 +9,7 @@ function initAll() {
     initButtons();
     initSearch();
     initProfileSync();
-    initStampScanner(); // Critical call
+    initStampScanner();
 }
 
 document.addEventListener("DOMContentLoaded", initAll);

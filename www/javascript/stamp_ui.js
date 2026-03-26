@@ -1,53 +1,18 @@
-import { state, selectors } from './list_state.js';
-import { userStamps, userStampOriginals, userStampDates, saveStamp, deleteStamp, isVisited } from './user.js';
+import { selectors } from './list_state.js';
+import { userStamps, userStampOriginals, userStampDates, saveStamp, deleteStamp } from './user.js';
 import { loadOpenCV } from './stamp_cv_loader.js';
 import { startCamera, stopCamera } from './stamp_camera.js';
 import { startCrop, handleCropInput, finalizeWarp } from './stamp_crop.js';
 import { setupRefinement, handleRefineDraw, processFinalStamp, applyLiveContrast, triggerUndo, toggleInvert } from './stamp_refine.js';
 
-let currentStationId = null, currentLineId = null, viewingStationId = null, isFlipped = false, currentTool = 'brush';
+let currentStationId = null;
+let viewingStationId = null;
+let isFlipped = false;
+let currentTool = 'brush';
 let currentOriginalImage = null;
 
-export async function showLineDetail(lineId) {
-    currentLineId = lineId;
-    const line = state.localLines[lineId];
-    const stations = state.localStations.filter(s => String(s.line_id) === String(lineId));
-    selectors.detailContainer.classList.remove('hidden');
-
-    const visitedCount = stations.filter(s => isVisited(s.id) || userStamps[String(s.id)]).length;
-    const totalCount = line.total_stations || stations.length;
-
-    selectors.detailLineName.innerText = line.name_en;
-    selectors.detailFraction.innerText = `${visitedCount}/${totalCount}`;
-    selectors.detailProgressBar.style.width = `${(visitedCount / totalCount) * 100}%`;
-    selectors.detailProgressBar.style.backgroundColor = line.color || 'black';
-    selectors.detailTrackLine.style.backgroundColor = line.color || '#4b5563';
-
-    selectors.detailStationsList.innerHTML = stations.map(s => {
-        const visited = isVisited(s.id) || userStamps[String(s.id)];
-        const stampHtml = userStamps[String(s.id)] ? `<div class="mt-4 mb-2 cursor-pointer stamp-image-preview transition-transform active:scale-95 w-max relative z-10" data-station-id="${s.id}"><img src="${userStamps[String(s.id)]}" class="w-32 h-32 object-cover border-[4px] border-black rounded-[20px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white -rotate-2 pointer-events-none"></div>` : '';
-        return `<div class="flex items-start gap-6 ml-1 station-item">
-            <div class="station-dot w-8 h-8 rounded-full border-[4px] border-black shrink-0 mt-1 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]" style="background-color: ${visited ? '#B2FF59' : '#FFF'}"></div>
-            <div class="flex flex-col gap-2 w-full">
-                <span class="text-xl font-black uppercase tracking-tight pt-2">${s.station_name_en || s.station_name_jp}</span>
-                <button class="add-stamp-btn bg-white border-[3px] border-black px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all w-max mt-1" data-station-id="${s.id}" data-station-name="${s.station_name_en}" data-line-color="${line.color || '#B2FF59'}">+ Add Stamp</button>
-                ${stampHtml}
-            </div>
-        </div>`;
-    }).join('');
-    
-    requestAnimationFrame(() => {
-        const dots = selectors.detailStationsList.querySelectorAll('.station-dot');
-        if (dots.length > 1) {
-            selectors.detailTrackLine.style.top = `${dots[0].offsetTop + 20}px`;
-            selectors.detailTrackLine.style.height = `${dots[dots.length - 1].offsetTop - dots[0].offsetTop}px`;
-        }
-        selectors.detailContainer.classList.remove('translate-x-full');
-    });
-}
-
-export function initStampScanner() {
-const els = {
+export function initStampUI(refreshCallback) {
+    const els = {
         addCont: document.getElementById("add-stamp-container"),
         video: document.getElementById("camera-feed"),
         canvas: document.getElementById("camera-canvas"),
@@ -110,7 +75,8 @@ const els = {
     });
 
     document.getElementById("capture-stamp-btn").onclick = () => {
-        els.canvas.width = els.video.videoWidth; els.canvas.height = els.video.videoHeight;
+        els.canvas.width = els.video.videoWidth; 
+        els.canvas.height = els.video.videoHeight;
         els.canvas.getContext('2d').drawImage(els.video, 0, 0);
         const url = els.canvas.toDataURL('image/jpeg', 0.8);
         stopCamera(els.video, els.place);
@@ -179,7 +145,7 @@ const els = {
         await saveStamp(currentStationId, processFinalStamp(els.refineBase, els.refineMask, els.ink.value, isFlipped), currentOriginalImage, customTs);
         els.refineCont.classList.add('translate-y-full', 'pointer-events-none');
         isFlipped = false; els.refineBase.style.transform = els.refineMask.style.transform = 'scaleX(1)';
-        showLineDetail(currentLineId);
+        refreshCallback();
     };
 
     document.getElementById("close-stamp-btn").onclick = () => { els.addCont.classList.add("translate-y-full", "pointer-events-none"); stopCamera(els.video, els.place); };
@@ -233,6 +199,6 @@ const els = {
         deleteConfirmBox.classList.add('scale-95');
         deleteConfirmBox.classList.remove('scale-100');
         els.modalCont.classList.add('opacity-0', 'pointer-events-none');
-        showLineDetail(currentLineId);
+        refreshCallback();
     };
 }

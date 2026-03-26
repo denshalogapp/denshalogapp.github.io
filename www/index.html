@@ -86,13 +86,14 @@
         </div>
 
         <div class="flex border-b-[4px] border-black bg-white z-30">
-            <button class="flex-1 py-4 text-xs font-black uppercase border-r-[4px] border-black bg-[#B2FF59]">Stations</button>
-            <button class="flex-1 py-4 text-xs font-black uppercase bg-gray-100 text-gray-400">Models</button>
+            <button id="tab-stations" class="flex-1 py-4 text-xs font-black uppercase border-r-[4px] border-black bg-[#B2FF59]">Stations</button>
+            <button id="tab-models" class="flex-1 py-4 text-xs font-black uppercase bg-gray-100 text-gray-400">Models</button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-8 relative scroll-smooth">
             <div id="detail-track-line" class="absolute left-[47px] w-4 rounded-full z-10"></div>
             <div id="detail-stations-list" class="relative z-20 space-y-12"></div>
+            <div id="detail-models-list" class="relative z-20 space-y-6 hidden"></div>
         </div>
     </div>
 
@@ -235,6 +236,73 @@
         </div>
     </div>
 
+    <div id="add-model-container" class="fixed inset-0 z-[100] bg-white overflow-y-auto transition-transform duration-500 ease-in-out translate-y-full pointer-events-none flex flex-col">
+        <div class="p-6 flex items-center justify-between border-b-[5px] border-black bg-white">
+            <h2 class="text-3xl font-black uppercase tracking-tighter">New Model</h2>
+            <button id="close-model-btn" class="w-12 h-12 border-[4px] border-black rounded-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="4"><path d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="flex-1 p-6 flex flex-col items-center justify-center gap-6 bg-white relative">
+            <div id="model-line-pill" class="px-6 py-2 rounded-full border-[4px] border-black text-black font-black uppercase tracking-tighter text-xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] w-max max-w-full text-center truncate"></div>
+
+            <div class="w-full max-w-sm aspect-square bg-gray-100 border-[5px] border-black rounded-[40px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center relative overflow-hidden">
+                <video id="model-camera-feed" class="absolute inset-0 w-full h-full object-cover hidden" autoplay playsinline></video>
+                <img id="model-preview-image" class="absolute inset-0 w-full h-full object-cover hidden z-10" />
+                <canvas id="model-camera-canvas" class="hidden"></canvas>
+                
+                <div id="model-camera-placeholder" class="flex flex-col items-center justify-center">
+                    <svg class="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                        <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-gray-400 font-black uppercase tracking-tighter text-center">Loading Camera...</span>
+                </div>
+            </div>
+            
+            <div class="w-full max-w-sm flex flex-col gap-4">
+                <input type="text" id="model-name-input" placeholder="Train Model (e.g. E235)" class="w-full bg-gray-100 border-[4px] border-black rounded-2xl px-4 py-3 text-sm font-black uppercase placeholder-gray-400 focus:outline-none focus:bg-white focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
+                
+                <div class="flex items-center gap-3 bg-gray-100 p-4 rounded-2xl border-[4px] border-black justify-between w-full">
+                    <span class="text-black text-[12px] font-black uppercase tracking-widest">Date Spotted</span>
+                    <input type="date" id="model-date-picker" class="bg-white text-black border-[3px] border-black rounded-xl p-2 font-bold text-sm uppercase focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-colors">
+                </div>
+                
+                <div id="model-capture-actions" class="flex gap-4 w-full">
+                    <button id="capture-model-btn" class="flex-1 bg-[#B2FF59] border-[5px] border-black rounded-2xl py-4 text-black font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all flex flex-col items-center justify-center gap-2">
+                        <svg class="w-8 h-8" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Capture
+                    </button>
+                    <label for="upload-model-input" class="flex-1 bg-[#40C4FF] border-[5px] border-black rounded-2xl py-4 text-black font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all cursor-pointer flex flex-col items-center justify-center gap-2 text-center leading-none">
+                        <svg class="w-8 h-8" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        </svg>
+                        Upload
+                        <input type="file" id="upload-model-input" accept="image/*" class="hidden">
+                    </label>
+                </div>
+
+                <div id="model-save-actions" class="flex gap-4 w-full hidden">
+                    <button id="retake-model-btn" class="flex-1 bg-gray-200 border-[5px] border-black rounded-2xl py-4 text-black font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all flex flex-col items-center justify-center gap-2">
+                        <svg class="w-8 h-8" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Retake
+                    </button>
+                    <button id="save-model-btn" class="flex-1 bg-[#B2FF59] border-[5px] border-black rounded-2xl py-4 text-black font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all flex flex-col items-center justify-center gap-2">
+                        <svg class="w-8 h-8" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <div id="crop-container" class="fixed inset-0 z-[115] bg-[#1a1a1a] translate-y-full pointer-events-none transition-transform duration-500 flex flex-col">
         <div class="p-6 flex items-center justify-between bg-[#1a1a1a] border-b-[4px] border-black z-10">
             <button id="cancel-crop-btn" class="w-12 h-12 bg-gray-800 border-[3px] border-black rounded-full flex items-center justify-center text-white active:translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none">
@@ -333,6 +401,27 @@
     </div>
 </div>
 
+<div id="model-modal-container" class="fixed inset-0 z-[110] bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col items-center justify-center p-6">
+    <div class="relative w-full max-w-sm flex flex-col items-center gap-6">
+        <button id="close-model-modal" class="absolute -top-12 right-0 w-10 h-10 bg-white border-[3px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <svg class="w-5 h-5" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="4"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+        <img id="model-modal-image" src="" class="w-full object-contain bg-white border-[5px] border-black rounded-[24px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-h-[60vh]">
+        
+        <h3 id="model-modal-name" class="text-white font-black text-2xl uppercase tracking-tighter mt-2 text-center w-full break-words"></h3>
+        <p id="model-modal-date" class="text-white font-bold text-sm tracking-widest uppercase"></p>
+        
+        <div class="flex gap-4 w-full">
+            <button id="edit-model-btn" class="flex-1 bg-[#40C4FF] border-[4px] border-black rounded-xl py-3 text-black font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2">
+                Edit
+            </button>
+            <button id="delete-model-btn" class="flex-1 bg-[#FF5252] border-[4px] border-black rounded-xl py-3 text-white font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
     <div id="delete-confirm-modal" class="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col items-center justify-center p-6">
         <div id="delete-confirm-box" class="w-full max-w-sm bg-white border-[5px] border-black rounded-[32px] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-6 text-center transform transition-transform scale-95 duration-300">
             <div class="w-16 h-16 bg-[#FF5252] border-[4px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-2">
@@ -347,6 +436,26 @@
                     Cancel
                 </button>
                 <button id="confirm-delete-btn" class="flex-1 bg-[#FF5252] border-[4px] border-black rounded-xl py-3 text-white font-black text-lg uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="delete-model-confirm-modal" class="fixed inset-0 z-[120] bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col items-center justify-center p-6">
+        <div id="delete-model-confirm-box" class="w-full max-w-sm bg-white border-[5px] border-black rounded-[32px] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-6 text-center transform transition-transform scale-95 duration-300">
+            <div class="w-16 h-16 bg-[#FF5252] border-[4px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-2">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="text-3xl font-black uppercase tracking-tighter leading-tight">Delete Model?</h3>
+            <p class="text-sm font-bold text-gray-500 uppercase tracking-tighter leading-tight">This action cannot be undone. Are you absolutely sure?</p>
+            <div class="flex gap-4 w-full mt-2">
+                <button id="cancel-delete-model-btn" class="flex-1 bg-gray-200 border-[4px] border-black rounded-xl py-3 text-black font-black text-lg uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                    Cancel
+                </button>
+                <button id="confirm-delete-model-btn" class="flex-1 bg-[#FF5252] border-[4px] border-black rounded-xl py-3 text-white font-black text-lg uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
                     Delete
                 </button>
             </div>

@@ -6,6 +6,7 @@ export let visitedStations = [];
 export const userStamps = {};
 export const userStampOriginals = {}; 
 export const userStampDates = {};
+export const userModels = {};
 
 export function isVisited(stationId) {
     return visitedStations.includes(String(stationId));
@@ -37,6 +38,24 @@ export async function deleteStamp(id) {
     await deleteDoc(stampRef);
 }
 
+export async function saveModel(lineId, b64, modelName, customTimestamp, existingId = null) {
+    if (!lineId) return;
+    const modelId = existingId || Date.now().toString();
+    const modelRef = doc(db, 'users', CURRENT_USER_ID, 'models', modelId);
+    await setDoc(modelRef, { 
+        line_id: String(lineId), 
+        image: b64, 
+        name: modelName || "Unknown Model",
+        timestamp: customTimestamp || Date.now() 
+    });
+}
+
+export async function deleteModel(id) {
+    if (!id) return;
+    const modelRef = doc(db, 'users', CURRENT_USER_ID, 'models', String(id));
+    await deleteDoc(modelRef);
+}
+
 export function initProfileSync() {
     onSnapshot(doc(db, 'users', CURRENT_USER_ID), (docSnap) => {
         if (docSnap.exists()) {
@@ -60,6 +79,15 @@ export function initProfileSync() {
             if (data.timestamp) userStampDates[doc.id] = data.timestamp;
         });
         
+        window.dispatchEvent(new CustomEvent('visitedDataUpdated'));
+    });
+
+    const modelsRef = collection(db, 'users', CURRENT_USER_ID, 'models');
+    onSnapshot(modelsRef, (snapshot) => {
+        Object.keys(userModels).forEach(key => delete userModels[key]);
+        snapshot.forEach((doc) => {
+            userModels[doc.id] = doc.data();
+        });
         window.dispatchEvent(new CustomEvent('visitedDataUpdated'));
     });
 }

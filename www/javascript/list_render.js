@@ -1,5 +1,6 @@
 import { state, selectors, RENDER_CHUNK_SIZE } from './list_state.js';
 import { showLineDetail } from './list_detail.js';
+import { isVisited, userStamps } from './user.js';
 
 export function renderLines() {
     if (selectors.sentinel.parentNode) {
@@ -14,7 +15,7 @@ export function renderLines() {
     if (!state.currentPrefId && !state.currentCompId) {
         targetLineIds = targetLineIds.filter(id => {
             const stationsOnLine = state.localStations.filter(s => String(s.line_id) === String(id));
-            return stationsOnLine.some(s => window.isVisited && window.isVisited(s.id));
+            return stationsOnLine.some(s => isVisited(s.id) || userStamps[String(s.id)]);
         });
     } else {
         if (state.currentPrefId) {
@@ -50,7 +51,7 @@ export function renderNextChunk() {
         if (stationsOnLine.length === 0) return;
 
         const total = line.total_stations || stationsOnLine.length;
-        const visited = stationsOnLine.filter(s => window.isVisited?.(s.id)).length;
+        const visited = stationsOnLine.filter(s => isVisited(s.id) || userStamps[String(s.id)]).length;
 
         const card = document.createElement('div');
         card.id = `line-card-${lineId}`;
