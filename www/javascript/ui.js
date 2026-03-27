@@ -3,7 +3,6 @@ export function initButtons() {
     const heartBtn = document.getElementById("icon-shell-1");
     const listBtn = document.getElementById("icon-shell-2");
     const userBtn = document.getElementById("user-shell");
-    const profileExitBtn = document.getElementById("profile-exit");
     const refreshBtn = document.getElementById("refresh-db");
 
     const feedContainer = document.getElementById("feed-container");
@@ -15,9 +14,14 @@ export function initButtons() {
     function resetUI() {
         feedContainer.classList.add("-translate-x-full", "pointer-events-none");
         listContainer.classList.add("translate-x-full", "pointer-events-none");
-        
+
         if (profileContainer) {
             profileContainer.classList.add("translate-x-full", "pointer-events-none");
+        }
+
+        const settingsContainer = document.getElementById("settings-container");
+        if (settingsContainer) {
+            settingsContainer.classList.add("-translate-x-full", "pointer-events-none");
         }
 
         const feedIcon = feedBtn.querySelector("svg");
@@ -29,6 +33,8 @@ export function initButtons() {
         listBtn.classList.remove("bg-[#40C4FF]");
         listIcon.classList.remove("text-white");
         listIcon.classList.add("text-[#40C4FF]");
+
+        window.hideTooltip?.();
     }
 
     window.resetUI = resetUI;
@@ -57,10 +63,12 @@ export function initButtons() {
 
     if (heartBtn) {
         heartBtn.onclick = function() {
-            const isAnyFrameOpen = 
+            const settingsContainer = document.getElementById("settings-container");
+            const isAnyFrameOpen =
                 !feedContainer.classList.contains("-translate-x-full") ||
-                !listContainer.classList.contains("translate-x-full") || 
-                (profileContainer && !profileContainer.classList.contains("translate-x-full"));
+                !listContainer.classList.contains("translate-x-full") ||
+                (profileContainer && !profileContainer.classList.contains("translate-x-full")) ||
+                (settingsContainer && !settingsContainer.classList.contains("-translate-x-full"));
 
             if (!isAnyFrameOpen) {
                 window.centerOnUser?.();
@@ -78,12 +86,6 @@ export function initButtons() {
             if (!isOpen) {
                 profileContainer.classList.remove("translate-x-full", "pointer-events-none");
             }
-        };
-    }
-
-    if (profileExitBtn) {
-        profileExitBtn.onclick = function() {
-            resetUI();
         };
     }
 

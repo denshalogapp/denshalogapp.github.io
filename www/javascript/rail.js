@@ -31,12 +31,12 @@ window.initMap = async function() {
         isFractionalZoomEnabled: true,
         center: centerView,
         disableDefaultUI: true,
-        styles: [
-            { "featureType": "all", "elementType": "labels", "stylers": [{ "visibility": "off" }] },
-            { "featureType": "landscape", "stylers": [{ "color": "#A5D6A7" }] },
-            { "featureType": "transit", "stylers": [{ "visibility": "off" }] },
-            { "featureType": "poi", "stylers": [{ "visibility": "off" }] },
-            { "featureType": "administrative", "stylers": [{ "visibility": "off" }] }
+        styles: window.getInitialMapStyles?.() || [
+            { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+            { featureType: 'landscape', stylers: [{ color: '#A5D6A7' }] },
+            { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+            { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+            { featureType: 'administrative', stylers: [{ visibility: 'off' }] },
         ]
     });
 
@@ -103,6 +103,9 @@ window.initMap = async function() {
     map.addListener('idle', () => {
         renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
     });
+
+    // idle has already fired by the time data loads, so render immediately
+    renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
 
     map.addListener('dragstart', () => {
         isFollowingUser = false;
@@ -206,37 +209,44 @@ export function showTooltip(latLng, data, type) {
             }
         }
         
-        container.style.backgroundColor = 'white';
-        container.style.borderColor = 'black';
-        arrow.style.backgroundColor = 'white';
-        arrow.style.borderRightColor = 'black';
-        arrow.style.borderBottomColor = 'black';
+        const dark = document.documentElement.classList.contains('dark');
+        container.style.backgroundColor = dark ? '#1e293b' : 'white';
+        container.style.borderColor = dark ? '#475569' : 'black';
+        arrow.style.backgroundColor = dark ? '#1e293b' : 'white';
+        arrow.style.borderRightColor = dark ? '#475569' : 'black';
+        arrow.style.borderBottomColor = dark ? '#475569' : 'black';
         container.style.boxShadow = `10px 10px 0px 0px ${data.color}`;
-        stationEl.style.color = 'black';
-        
+        stationEl.style.color = dark ? '#f1f5f9' : 'black';
+
         if (fractionEl) fractionEl.classList.add('hidden');
         if (progressEl) progressEl.classList.add('hidden');
         if (footer) footer.classList.remove('hidden');
     } else {
         window.activeStationId = null;
-        
+
         if (linePill) linePill.classList.add('hidden');
 
-        container.style.backgroundColor = 'black';
+        const dark = document.documentElement.classList.contains('dark');
+        const lineBg = dark ? '#1e293b' : 'white';
+        const lineText = dark ? '#f1f5f9' : 'black';
+        const lineBorder = dark ? '#475569' : 'black';
+        const segmentEmpty = dark ? 'bg-gray-700' : 'bg-gray-300';
+
+        container.style.backgroundColor = lineBg;
         container.style.borderColor = data.color;
-        arrow.style.backgroundColor = 'black';
+        arrow.style.backgroundColor = lineBg;
         arrow.style.borderRightColor = data.color;
         arrow.style.borderBottomColor = data.color;
         container.style.boxShadow = `10px 10px 0px 0px ${data.color}`;
-        stationEl.style.color = 'white';
-        
+        stationEl.style.color = lineText;
+
         if (fractionEl) {
             fractionEl.classList.remove('hidden');
             fractionEl.innerHTML = `
                 <div class="flex items-baseline mt-1">
-                    <span class="text-3xl leading-none">${data.visitedCount}</span>
-                    <span class="mx-0.5 opacity-40 text-xl leading-none">/</span>
-                    <span class="text-sm opacity-60 leading-none">${data.totalCount}</span>
+                    <span class="text-3xl leading-none" style="color:${lineText}">${data.visitedCount}</span>
+                    <span class="mx-0.5 opacity-40 text-xl leading-none" style="color:${lineText}">/</span>
+                    <span class="text-sm opacity-60 leading-none" style="color:${lineText}">${data.totalCount}</span>
                 </div>
             `;
         }
@@ -246,7 +256,7 @@ export function showTooltip(latLng, data, type) {
             progressEl.innerHTML = '';
             for(let i = 0; i < data.totalCount; i++) {
                 const segment = document.createElement('div');
-                segment.className = `flex-1 h-full rounded-sm ${i < data.visitedCount ? 'bg-[#B2FF59]' : 'bg-gray-700'}`;
+                segment.className = `flex-1 h-full rounded-sm ${i < data.visitedCount ? 'bg-[#B2FF59]' : segmentEmpty}`;
                 progressEl.appendChild(segment);
             }
         }
@@ -282,6 +292,7 @@ export function hideTooltip() {
         window.activeStationId = null;
     }
 }
+window.hideTooltip = hideTooltip;
 
 document.addEventListener('DOMContentLoaded', () => {
     const cancelUnmarkBtn = document.getElementById('cancel-unmark-btn');
