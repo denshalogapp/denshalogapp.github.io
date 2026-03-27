@@ -71,8 +71,13 @@ export async function showLineDetail(lineId) {
     requestAnimationFrame(() => {
         const dots = selectors.detailStationsList.querySelectorAll('.station-dot');
         if (dots.length > 1) {
-            selectors.detailTrackLine.style.top = `${dots[0].offsetTop + 20}px`;
-            selectors.detailTrackLine.style.height = `${dots[dots.length - 1].offsetTop - dots[0].offsetTop}px`;
+            // Factor in the container padding and +16px to hit the vertical center of the dot
+            const listTop = selectors.detailStationsList.offsetTop;
+            const startY = listTop + dots[0].offsetTop + 16;
+            const endY = listTop + dots[dots.length - 1].offsetTop + 16;
+
+            selectors.detailTrackLine.style.top = `${startY}px`;
+            selectors.detailTrackLine.style.height = `${endY - startY}px`;
         }
         selectors.detailContainer.classList.remove('translate-x-full');
     });
