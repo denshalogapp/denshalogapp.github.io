@@ -31,12 +31,12 @@ window.initMap = async function() {
         isFractionalZoomEnabled: true,
         center: centerView,
         disableDefaultUI: true,
-        styles: [
-            { "featureType": "all", "elementType": "labels", "stylers": [{ "visibility": "off" }] },
-            { "featureType": "landscape", "stylers": [{ "color": "#A5D6A7" }] },
-            { "featureType": "transit", "stylers": [{ "visibility": "off" }] },
-            { "featureType": "poi", "stylers": [{ "visibility": "off" }] },
-            { "featureType": "administrative", "stylers": [{ "visibility": "off" }] }
+        styles: window.getInitialMapStyles?.() || [
+            { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+            { featureType: 'landscape', stylers: [{ color: '#A5D6A7' }] },
+            { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+            { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+            { featureType: 'administrative', stylers: [{ visibility: 'off' }] },
         ]
     });
 
@@ -206,20 +206,21 @@ export function showTooltip(latLng, data, type) {
             }
         }
         
-        container.style.backgroundColor = 'white';
-        container.style.borderColor = 'black';
-        arrow.style.backgroundColor = 'white';
-        arrow.style.borderRightColor = 'black';
-        arrow.style.borderBottomColor = 'black';
+        const dark = document.documentElement.classList.contains('dark');
+        container.style.backgroundColor = dark ? '#1e293b' : 'white';
+        container.style.borderColor = dark ? '#475569' : 'black';
+        arrow.style.backgroundColor = dark ? '#1e293b' : 'white';
+        arrow.style.borderRightColor = dark ? '#475569' : 'black';
+        arrow.style.borderBottomColor = dark ? '#475569' : 'black';
         container.style.boxShadow = `10px 10px 0px 0px ${data.color}`;
-        stationEl.style.color = 'black';
-        
+        stationEl.style.color = dark ? '#f1f5f9' : 'black';
+
         if (fractionEl) fractionEl.classList.add('hidden');
         if (progressEl) progressEl.classList.add('hidden');
         if (footer) footer.classList.remove('hidden');
     } else {
         window.activeStationId = null;
-        
+
         if (linePill) linePill.classList.add('hidden');
 
         container.style.backgroundColor = 'black';
