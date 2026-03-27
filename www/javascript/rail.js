@@ -104,6 +104,9 @@ window.initMap = async function() {
         renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
     });
 
+    // idle has already fired by the time data loads, so render immediately
+    renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
+
     map.addListener('dragstart', () => {
         isFollowingUser = false;
         hideTooltip();
