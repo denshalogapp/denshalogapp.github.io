@@ -27,7 +27,7 @@ window.getInitialMapStyles = () => getMapStyles(localStorage.getItem(DARK_MODE_K
 
 function applyDarkMode(isDark) {
     document.documentElement.classList.toggle('dark', isDark);
-    if (window.map) {
+    if (window.map && typeof window.map.setOptions === 'function') {
         window.map.setOptions({ styles: getMapStyles(isDark) });
     }
 }
