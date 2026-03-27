@@ -1,10 +1,34 @@
 const DARK_MODE_KEY = 'eki-dark-mode';
 const SOUND_KEY = 'eki-sound';
 
+const LIGHT_STYLES = [
+    { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+    { featureType: 'landscape', stylers: [{ color: '#A5D6A7' }] },
+    { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+    { featureType: 'administrative', stylers: [{ visibility: 'off' }] },
+];
+const DARK_STYLES = [
+    { elementType: 'geometry', stylers: [{ color: '#1a1a2e' }] },
+    { elementType: 'labels', stylers: [{ visibility: 'off' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2d2d44' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#3a3a5c' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0d1117' }] },
+    { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+    { featureType: 'administrative', stylers: [{ visibility: 'off' }] },
+];
+
+function getMapStyles(isDark) {
+    return isDark ? DARK_STYLES : LIGHT_STYLES;
+}
+
+window.getInitialMapStyles = () => getMapStyles(localStorage.getItem(DARK_MODE_KEY) === 'true');
+
 function applyDarkMode(isDark) {
     document.documentElement.classList.toggle('dark', isDark);
     if (window.map) {
-        window.map.setOptions({ colorScheme: isDark ? 'DARK' : 'LIGHT' });
+        window.map.setOptions({ styles: getMapStyles(isDark) });
     }
 }
 
