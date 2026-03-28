@@ -11,6 +11,11 @@ module.exports = {
       }
     }
   },
-  plugins: [],
+  plugins: [
+    // Add custom variants for iOS and Android
+    function ({ addVariant }) {
+      addVariant('ios', ':where(.ios) &');
+      addVariant('android', ':where(.android) &');
+    }
+  ],
 }
-
