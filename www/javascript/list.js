@@ -25,9 +25,17 @@ async function initList() {
         if (entries[0].isIntersecting) renderNextChunk();
     }, { root: null, rootMargin: '200px' });
 
-    selectors.prefSelector.onclick = (e) => { e.stopPropagation(); selectors.prefMenu.classList.toggle('hidden'); selectors.compMenu.classList.add('hidden'); };
-    selectors.compSelector.onclick = (e) => { e.stopPropagation(); selectors.compMenu.classList.toggle('hidden'); selectors.prefMenu.classList.add('hidden'); };
-    selectors.searchInput.oninput = handleSearch;
+    if (selectors.prefSelector) {
+        selectors.prefSelector.onclick = (e) => { e.stopPropagation(); selectors.prefMenu.classList.toggle('hidden'); selectors.compMenu.classList.add('hidden'); };
+    }
+    
+    if (selectors.compSelector) {
+        selectors.compSelector.onclick = (e) => { e.stopPropagation(); selectors.compMenu.classList.toggle('hidden'); selectors.prefMenu.classList.add('hidden'); };
+    }
+    
+    if (selectors.searchInput) {
+        selectors.searchInput.oninput = handleSearch;
+    }
 
     if (selectors.backBtn) {
         selectors.backBtn.onclick = () => {
@@ -38,12 +46,10 @@ async function initList() {
         };
     }
 
-    // Ensure list re-renders whenever fresh user/map data is populated
     window.addEventListener('visitedDataUpdated', renderLines);
     window.addEventListener('stationsLoaded', renderLines);
     window.addEventListener('lineDataLoaded', renderLines);
     
-    // Fallback re-renders in case the global events fire before this module is loaded
     setTimeout(renderLines, 500);
     setTimeout(renderLines, 1500);
 
@@ -51,9 +57,15 @@ async function initList() {
 }
 
 document.addEventListener('click', (e) => {
-    if (!selectors.searchInput.contains(e.target)) selectors.searchDropdown.classList.add('hidden');
-    if (!selectors.prefSelector.contains(e.target)) selectors.prefMenu.classList.add('hidden');
-    if (!selectors.compSelector.contains(e.target)) selectors.compMenu.classList.add('hidden');
+    if (selectors.searchInput && !selectors.searchInput.contains(e.target) && selectors.searchDropdown) {
+        selectors.searchDropdown.classList.add('hidden');
+    }
+    if (selectors.prefSelector && !selectors.prefSelector.contains(e.target) && selectors.prefMenu) {
+        selectors.prefMenu.classList.add('hidden');
+    }
+    if (selectors.compSelector && !selectors.compSelector.contains(e.target) && selectors.compMenu) {
+        selectors.compMenu.classList.add('hidden');
+    }
 });
 
 initList();

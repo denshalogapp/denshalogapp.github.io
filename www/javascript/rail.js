@@ -260,9 +260,9 @@ export function showTooltip(latLng, data, type) {
             fractionEl.classList.remove('hidden');
             fractionEl.innerHTML = `
                 <div class="flex items-baseline mt-1">
-                    <span class="text-3xl leading-none" style="color:${lineText}">${data.visitedCount}</span>
-                    <span class="mx-0.5 opacity-40 text-xl leading-none" style="color:${lineText}">/</span>
-                    <span class="text-sm opacity-60 leading-none" style="color:${lineText}">${data.totalCount}</span>
+                    <span class="text-xl leading-none" style="color:${lineText}">${data.visitedCount}</span>
+                    <span class="mx-0.5 opacity-40 text-base leading-none" style="color:${lineText}">/</span>
+                    <span class="text-xs opacity-60 leading-none" style="color:${lineText}">${data.totalCount}</span>
                 </div>
             `;
         }

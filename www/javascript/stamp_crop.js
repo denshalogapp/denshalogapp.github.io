@@ -54,9 +54,15 @@ function drawUI(canvas) {
 }
 
 export function handleCropInput(e, canvas, type) {
-    if (type === 'move' && e && e.cancelable) e.preventDefault();
     if (type === 'up') { activePoint = -1; return; }
+    
+    // If we aren't dragging a corner, let the event pass through so the user can scroll!
     if (!canvas || !e || (type === 'move' && activePoint === -1)) return;
+
+    // Only block scrolling if we are actively dragging a crop point
+    if (type === 'move' && e && e.cancelable) {
+        e.preventDefault();
+    }
 
     const rect = canvas.getBoundingClientRect();
     const scale = canvas.width / rect.width;

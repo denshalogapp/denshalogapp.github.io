@@ -51,9 +51,13 @@ export function setupRefinement(dataUrl, baseCanvas, maskCanvas, workspace) {
 }
 
 export function handleRefineDraw(e, canvas, tool, size, type, isFlipped) {
-    if (type === 'move' && e && e.cancelable) e.preventDefault();
     if (type === 'stop') { isDrawing = false; return; }
     if (!canvas || !e) return;
+
+    // Only block native scrolling if the user is actively drawing on the canvas
+    if (type === 'move' && isDrawing && e && e.cancelable) {
+        e.preventDefault();
+    }
 
     const rect = canvas.getBoundingClientRect();
     const scale = canvas.width / rect.width;

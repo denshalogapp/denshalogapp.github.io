@@ -98,3 +98,9 @@ export function initSettingsFrame() {
         signOutBtn.onclick = () => console.log('Sign out tapped');
     }
 }
+
+document.addEventListener('turbo:frame-load', (e) => {
+    if (e.target.id === 'settings-frame') {
+        initSettingsFrame();
+    }
+});

@@ -63,24 +63,24 @@ export function renderNextChunk() {
 
         const card = document.createElement('div');
         card.id = `line-card-${lineId}`;
-        card.className = "bg-white border-[5px] border-black p-6 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-4 transition-all cursor-pointer hover:translate-x-1 hover:translate-y-1 hover:shadow-none";
+        card.className = "bg-white border-[3px] border-black p-4 rounded-[20px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col gap-3 transition-all cursor-pointer hover:translate-x-1 hover:translate-y-1 hover:shadow-none";
 
         const segments = Array.from({ length: total }).map((_, i) => 
             `<div class="flex-1 h-full rounded-sm ${i < visited ? 'bg-[#B2FF59]' : 'bg-gray-200'}"></div>`
         ).join('');
 
         card.innerHTML = `
-            <div class="flex items-center justify-between gap-4 pointer-events-none">
-                <h3 class="text-black font-black text-2xl leading-tight uppercase tracking-tight break-words flex-1">${line.name_en}</h3>
-                <div class="w-20 h-20 shrink-0 bg-white border-[4px] border-black rounded-full flex items-center justify-center text-black font-black italic" style="box-shadow: 4px 4px 0px 0px ${line.color || '#000'}">
-                    <div class="flex items-baseline mt-1">
-                        <span class="text-3xl leading-none">${visited}</span>
-                        <span class="mx-0.5 opacity-40 text-xl leading-none">/</span>
-                        <span class="text-sm opacity-60 leading-none">${total}</span>
+            <div class="flex items-center justify-between gap-3 pointer-events-none">
+                <h3 class="text-black font-black text-lg leading-tight uppercase tracking-tight break-words flex-1">${line.name_en}</h3>
+                <div class="w-14 h-14 shrink-0 bg-white border-[3px] border-black rounded-full flex items-center justify-center text-black font-black italic" style="box-shadow: 3px 3px 0px 0px ${line.color || '#000'}">
+                    <div class="flex items-baseline mt-0.5">
+                        <span class="text-xl leading-none">${visited}</span>
+                        <span class="mx-0.5 opacity-40 text-sm leading-none">/</span>
+                        <span class="text-xs opacity-60 leading-none">${total}</span>
                     </div>
                 </div>
             </div>
-            <div class="w-full flex gap-1 h-3 mt-2 pointer-events-none">${segments}</div>
+            <div class="w-full flex gap-1 h-2 mt-1 pointer-events-none">${segments}</div>
         `;
 
         card.onclick = () => showLineDetail(lineId);
