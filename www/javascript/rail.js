@@ -4,7 +4,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { renderPolylines, polylines } from './map_layers.js';
 import { renderVisibleMarkers, updateUserMarker } from './map_markers.js';
 import { toggleStation } from './user.js';
-import { idbSet } from './idb.js';
+import { idbSet, idbGet } from './idb.js';
 
 let map;
 let allStations = [];
@@ -43,71 +43,75 @@ window.initMap = async function() {
 
     window.map = map;
 
-    const configSnap = await getDoc(doc(db, 'metadata', 'config'));
+    try {
+        let stations = await idbGet('stationData');
+        let lines = await idbGet('lineData');
+        let joins = await idbGet('joinData');
 
-try {
-    const configSnap = await getDoc(doc(db, 'metadata', 'config'));
-    const [stations, lines, joins] = await Promise.all([
-        syncStationData(configSnap),
-        syncLineData(configSnap),
-        syncJoinData(configSnap)
-    ]);
+        if (!stations || !lines || !joins) {
+            const configSnap = await getDoc(doc(db, 'metadata', 'config'));
+            [stations, lines, joins] = await Promise.all([
+                syncStationData(configSnap),
+                syncLineData(configSnap),
+                syncJoinData(configSnap)
+            ]);
 
-    const coordMap = {};
-    stations.forEach(s => {
-        const key = `${s.lat}_${s.lon}`;
-        if (!coordMap[key]) coordMap[key] = [];
-        coordMap[key].push(s);
-    });
-
-    allStations = stations;
-    lineColors = lines;
-    
-    window.allStations = allStations;
-    window.lineColors = lineColors;
-    window.lineData = lineColors; 
-
-    await idbSet('stationData', stations);
-    await idbSet('lineData', lines);
-
-    window.dispatchEvent(new CustomEvent('stationsLoaded'));
-    window.dispatchEvent(new CustomEvent('lineDataLoaded'));
-
-    allStations.forEach(s => {
-        stationLookup[String(s.id)] = s;
-    });
-
-    Object.values(coordMap).forEach(group => {
-        if (group.length === 1) {
-            group[0].displayLat = Number(group[0].lat);
-            group[0].displayLon = Number(group[0].lon);
-        } else {
-            group.sort((a, b) => String(a.line_id).localeCompare(String(b.line_id)));
-
-            const radius = 0.00015;
-            group.forEach((station, index) => {
-                const angle = (index / group.length) * Math.PI * 2;
-                station.displayLat = Number(station.lat) + (Math.cos(angle) * radius);
-                const latRad = Number(station.lat) * (Math.PI / 180);
-                station.displayLon = Number(station.lon) + ((Math.sin(angle) * radius) / Math.cos(latRad));
-            });
+            await idbSet('stationData', stations);
+            await idbSet('lineData', lines);
+            await idbSet('joinData', joins);
         }
-    });
 
-    renderPolylines(map, joins, stationLookup, lineColors, showTooltip);
-    initUserTracking();
+        const coordMap = {};
+        stations.forEach(s => {
+            const key = `${s.lat}_${s.lon}`;
+            if (!coordMap[key]) coordMap[key] = [];
+            coordMap[key].push(s);
+        });
 
-} catch (error) {
-    console.error(error);
-} finally {
-    const overlay = document.getElementById('app-loading-overlay');
-    if (overlay) {
-        overlay.classList.add('opacity-0', 'pointer-events-none');
-        setTimeout(() => overlay.remove(), 500); 
+        allStations = stations;
+        lineColors = lines;
+        
+        window.allStations = allStations;
+        window.lineColors = lineColors;
+        window.lineData = lineColors; 
+
+        window.dispatchEvent(new CustomEvent('stationsLoaded'));
+        window.dispatchEvent(new CustomEvent('lineDataLoaded'));
+
+        allStations.forEach(s => {
+            stationLookup[String(s.id)] = s;
+        });
+
+        Object.values(coordMap).forEach(group => {
+            if (group.length === 1) {
+                group[0].displayLat = Number(group[0].lat);
+                group[0].displayLon = Number(group[0].lon);
+            } else {
+                group.sort((a, b) => String(a.line_id).localeCompare(String(b.line_id)));
+
+                const radius = 0.00015;
+                group.forEach((station, index) => {
+                    const angle = (index / group.length) * Math.PI * 2;
+                    station.displayLat = Number(station.lat) + (Math.cos(angle) * radius);
+                    const latRad = Number(station.lat) * (Math.PI / 180);
+                    station.displayLon = Number(station.lon) + ((Math.sin(angle) * radius) / Math.cos(latRad));
+                });
+            }
+        });
+
+        renderPolylines(map, joins, stationLookup, lineColors, showTooltip);
+        initUserTracking();
+
+    } catch (error) {
+        console.error(error);
+    } finally {
+        const overlay = document.getElementById('app-loading-overlay');
+        if (overlay) {
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => overlay.remove(), 500); 
+        }
     }
-}
 
-    // Fade out and remove loading overlay once data is ready
     const overlay = document.getElementById('app-loading-overlay');
     if (overlay) {
         overlay.classList.add('opacity-0', 'pointer-events-none');
@@ -118,7 +122,6 @@ try {
         renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
     });
 
-    // idle has already fired by the time data loads, so render immediately
     renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
 
     map.addListener('dragstart', () => {
@@ -157,7 +160,7 @@ function initUserTracking() {
                 currentPosition = pos;
                 updateUserMarker(map, pos);
                 if (isFollowingUser) {
-                    map.panTo(pos);
+                    map.panTo(currentPosition);
                 }
             },
             (err) => console.warn(err),
@@ -174,7 +177,6 @@ window.centerOnUser = function() {
 };
 
 window.renderVisibleMarkers = () => {
-    // Add a check to prevent crashing if the map hasn't loaded yet
     if (!map) return; 
     renderVisibleMarkers(map, allStations, lineColors, activeLineFilter, showTooltip);
 };

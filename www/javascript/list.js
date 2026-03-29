@@ -1,4 +1,4 @@
-import { idbGet } from './idb.js';
+import { idbGet, idbSet } from './idb.js';
 import { db } from './firebase.js';
 import { collection, getDocs } from 'firebase/firestore';
 import { state, selectors } from './list_state.js';
@@ -11,12 +11,23 @@ async function initList() {
     state.localStations = window.allStations || await idbGet('stationData') || [];
     state.localLines = window.lineData || window.lineColors || await idbGet('lineData') || {};
 
-    const [prefSnap, compSnap] = await Promise.all([
-        getDocs(collection(db, 'prefectures')),
-        getDocs(collection(db, 'companies'))
-    ]);
-    state.prefectures = prefSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    state.companies = compSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    let prefs = await idbGet('prefecturesData');
+    let comps = await idbGet('companiesData');
+
+    if (!prefs || !comps) {
+        const [prefSnap, compSnap] = await Promise.all([
+            getDocs(collection(db, 'prefectures')),
+            getDocs(collection(db, 'companies'))
+        ]);
+        prefs = prefSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        comps = compSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        
+        await idbSet('prefecturesData', prefs);
+        await idbSet('companiesData', comps);
+    }
+
+    state.prefectures = prefs;
+    state.companies = comps;
 
     populatePrefectures();
     populateCompanies();
