@@ -5,6 +5,7 @@ import { renderPolylines, polylines } from './map_layers.js';
 import { renderVisibleMarkers, updateUserMarker } from './map_markers.js';
 import { toggleStation } from './user.js';
 import { idbSet, idbGet } from './idb.js';
+import { playReturnSound } from './audio.js';
 
 let map;
 let allStations = [];
@@ -322,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await toggleStation(window.stationToUnmark);
                 window.stationToUnmark = null;
             }
+            playReturnSound();
             document.getElementById('unmark-confirm-modal').classList.add('opacity-0', 'pointer-events-none');
             document.getElementById('unmark-confirm-box').classList.add('scale-95');
             document.getElementById('unmark-confirm-box').classList.remove('scale-100');

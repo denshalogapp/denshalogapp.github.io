@@ -4,6 +4,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { state, selectors } from './list_state.js';
 import { renderLines, renderNextChunk } from './list_render.js';
 import { populatePrefectures, populateCompanies, handleSearch } from './list_search.js';
+import { playReturnSound } from './audio.js';
 
 async function initList() {
     if (!selectors.listFrame) return;
@@ -50,6 +51,7 @@ async function initList() {
 
     if (selectors.backBtn) {
         selectors.backBtn.onclick = () => {
+            playReturnSound();
             selectors.detailContainer.classList.add('translate-x-full');
             setTimeout(() => {
                 selectors.detailContainer.classList.add('hidden');

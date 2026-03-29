@@ -1,11 +1,38 @@
+import { idbClear } from './idb.js';
 import { auth } from './firebase.js';
 import { signOut } from 'firebase/auth';
-
 const DARK_MODE_KEY = 'eki-dark-mode';
 const SOUND_KEY = 'eki-sound';
 
+const LIGHT_STYLES = [
+    { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+    { featureType: 'landscape', stylers: [{ color: '#A5D6A7' }] },
+    { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+    { featureType: 'administrative', stylers: [{ visibility: 'off' }] },
+];
+const DARK_STYLES = [
+    { elementType: 'geometry', stylers: [{ color: '#1a1a2e' }] },
+    { elementType: 'labels', stylers: [{ visibility: 'off' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#2d2d44' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#3a3a5c' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0d1117' }] },
+    { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+    { featureType: 'administrative', stylers: [{ visibility: 'off' }] },
+];
+
+function getMapStyles(isDark) {
+    return isDark ? DARK_STYLES : LIGHT_STYLES;
+}
+
+window.getInitialMapStyles = () => getMapStyles(localStorage.getItem(DARK_MODE_KEY) === 'true');
+
 function applyDarkMode(isDark) {
     document.documentElement.classList.toggle('dark', isDark);
+    if (window.map && typeof window.map.setOptions === 'function') {
+        window.map.setOptions({ styles: getMapStyles(isDark) });
+    }
 }
 
 function setToggle(btn, isOn) {
@@ -47,6 +74,7 @@ export function initSettingsFrame() {
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     const soundToggle = document.getElementById('sound-toggle');
     const signOutBtn = document.getElementById('sign-out-btn');
+    const refreshBtn = document.getElementById('refresh-db-btn');
 
     const savedDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
     const savedSound = localStorage.getItem(SOUND_KEY) !== 'false';
@@ -70,11 +98,24 @@ export function initSettingsFrame() {
         };
     }
 
-    if (signOutBtn) {
+
+if (signOutBtn) {
         signOutBtn.onclick = async () => {
             await signOut(auth);
             window.location.reload(); 
         };
+    }
+
+    if (refreshBtn) {
+        refreshBtn.onclick = async function() {
+            localStorage.clear();
+            await idbClear();
+            window.location.reload();
+        };
+    }
+
+    if (signOutBtn) {
+        signOutBtn.onclick = () => console.log('Sign out tapped');
     }
 }
 

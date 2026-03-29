@@ -1,11 +1,8 @@
-import { idbClear } from './idb.js';
-
 export function initButtons() {
     const feedBtn = document.getElementById("icon-shell-0");
     const heartBtn = document.getElementById("icon-shell-1");
     const listBtn = document.getElementById("icon-shell-2");
     const userBtn = document.getElementById("user-shell");
-    const refreshBtn = document.getElementById("refresh-db");
 
     const feedContainer = document.getElementById("feed-container");
     const listContainer = document.getElementById("list-container");
@@ -88,14 +85,6 @@ export function initButtons() {
             if (!isOpen) {
                 profileContainer.classList.remove("translate-x-full", "pointer-events-none");
             }
-        };
-    }
-
-    if (refreshBtn) {
-        refreshBtn.onclick = async function() {
-            localStorage.clear();
-            await idbClear(); // Clear IndexedDB as well
-            window.location.reload();
         };
     }
 }

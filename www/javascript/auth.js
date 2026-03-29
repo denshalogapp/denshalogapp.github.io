@@ -8,16 +8,19 @@ import { setCurrentUser, initProfileSync } from './user.js';
 import { initFeedFrame } from './feed.js';
 
 let isSignUpMode = false;
+let isInitialLoad = true;
 
-// Triggered when a guest tries to do a registered-user action
 export function showAuthScreen() {
-    document.getElementById('auth-container').classList.remove('hidden');
+    const authContainer = document.getElementById('auth-container');
+    
+    authContainer.classList.remove('hidden');
+    void authContainer.offsetWidth;
+    authContainer.classList.remove('translate-y-full');
     
     if (auth.currentUser && auth.currentUser.isAnonymous) {
         document.getElementById('auth-close-btn').classList.remove('hidden');
-        document.getElementById('auth-anon-btn').classList.add('hidden'); // Hide guest button
+        document.getElementById('auth-anon-btn').classList.add('hidden');
         
-        // Force Sign Up mode
         isSignUpMode = true;
         document.getElementById('auth-username').classList.remove('hidden');
         document.getElementById('auth-username').required = true;
@@ -41,12 +44,24 @@ export function initAuth() {
     const errorMsg = document.getElementById('auth-error-message');
 
     if (authCloseBtn) {
-        authCloseBtn.onclick = () => authContainer.classList.add('hidden');
+        authCloseBtn.onclick = () => {
+            authContainer.classList.add('translate-y-full');
+            setTimeout(() => {
+                if (authContainer.classList.contains('translate-y-full')) {
+                    authContainer.classList.add('hidden');
+                }
+            }, 500);
+        };
     }
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            authContainer.classList.add('hidden');
+            authContainer.classList.add('translate-y-full');
+            setTimeout(() => {
+                if (authContainer.classList.contains('translate-y-full')) {
+                    authContainer.classList.add('hidden');
+                }
+            }, 500);
             if (authCloseBtn) authCloseBtn.classList.add('hidden');
             
             let username = user.isAnonymous ? "Guest" : "User";
@@ -63,8 +78,18 @@ export function initAuth() {
             initProfileSync();
             initFeedFrame();
         } else {
-            authContainer.classList.remove('hidden');
+            if (isInitialLoad) {
+                authContainer.style.transition = 'none';
+                authContainer.classList.remove('hidden', 'translate-y-full');
+                void authContainer.offsetWidth;
+                authContainer.style.transition = '';
+            } else {
+                authContainer.classList.remove('hidden');
+                void authContainer.offsetWidth;
+                authContainer.classList.remove('translate-y-full');
+            }
         }
+        isInitialLoad = false;
     });
 
     authToggleMode.onclick = () => {
@@ -107,7 +132,7 @@ export function initAuth() {
                     const credential = EmailAuthProvider.credential(currentEmail, password);
                     await linkWithCredential(auth.currentUser, credential);
                     await setDoc(doc(db, 'users', auth.currentUser.uid), { username, email: currentEmail }, { merge: true });
-                    window.location.reload(); // Reload cleans state perfectly after an upgrade
+                    window.location.reload();
                 } else {
                     const cred = await createUserWithEmailAndPassword(auth, currentEmail, password);
                     await setDoc(doc(db, 'users', cred.user.uid), { username, email: currentEmail }, { merge: true });
@@ -133,7 +158,7 @@ export function initAuth() {
         try {
             if (auth.currentUser && auth.currentUser.isAnonymous) {
                 await linkWithPopup(auth.currentUser, googleProvider);
-                window.location.reload(); // Clean state
+                window.location.reload();
             } else {
                 await signInWithPopup(auth, googleProvider);
             }

@@ -1,6 +1,7 @@
 import { selectors } from './list_state.js';
 import { userModels, saveModel, deleteModel } from './user.js';
 import { startCamera, stopCamera } from './stamp_camera.js';
+import { playReturnSound } from './audio.js';
 
 let viewingModelId = null;
 let currentLineId = null;
@@ -191,6 +192,7 @@ export function initModelUI(refreshCallback) {
 
     document.getElementById("confirm-delete-model-btn").onclick = async () => {
         await deleteModel(viewingModelId);
+        playReturnSound();
         deleteModelConfirmModal.classList.add('opacity-0', 'pointer-events-none');
         deleteModelConfirmBox.classList.add('scale-95');
         deleteModelConfirmBox.classList.remove('scale-100');

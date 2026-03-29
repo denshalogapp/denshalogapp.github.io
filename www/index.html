@@ -16,8 +16,7 @@
 
 <body class="min-h-screen relative font-sans overflow-x-hidden overflow-y-hidden">
 
-<div id="auth-container" class="fixed inset-0 z-[300] bg-[#40C4FF] flex flex-col items-center justify-center overflow-y-auto hidden">
-    <button id="auth-close-btn" class="absolute top-8 right-8 w-12 h-12 bg-white border-[4px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all hidden z-50">
+<div id="auth-container" class="fixed inset-0 z-[300] bg-[#40C4FF] flex flex-col items-center justify-center overflow-y-auto hidden transition-transform duration-500 ease-in-out translate-y-full">    <button id="auth-close-btn" class="absolute top-8 right-8 w-12 h-12 bg-white border-[4px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all hidden z-50">
         <svg class="w-6 h-6" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="4"><path d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
     <div class="w-[90%] max-w-sm bg-white border-[5px] border-black rounded-[32px] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-4 my-8 relative z-40">
@@ -129,10 +128,6 @@
             <div id="search-results" class="absolute top-full left-0 right-0 mt-2 bg-white border-[4px] border-black rounded-[20px] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hidden z-50 max-h-72 overflow-y-auto" style="overscroll-behavior: contain;"></div>
         </div>
     </div>
-
-    <button id="refresh-db" class="fixed top-[calc(2rem+env(safe-area-inset-top))] right-6 z-20 bg-[#FF80AB] border-[3px] border-black text-white font-black text-xs rounded-xl px-5 py-2 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase">
-        Refresh
-    </button>
 
     <div id="map-tooltip" class="fixed pointer-events-none opacity-0 z-30 transition-opacity duration-200">
         <div id="tooltip-container" class="relative bg-white border-[4px] border-black p-5 rounded-[24px] flex flex-col items-center justify-center text-center min-w-[200px]">
@@ -571,7 +566,6 @@
         </div>
     </div>
 
-    <script type="module" src="javascript/auth.js"></script>
     <script type="module" src="javascript/firebase.js"></script>
     <script type="module" src="javascript/user.js"></script>
     <script type="module" src="javascript/map_utils.js"></script>

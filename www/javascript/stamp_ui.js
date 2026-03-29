@@ -4,6 +4,7 @@ import { loadOpenCV } from './stamp_cv_loader.js';
 import { startCamera, stopCamera } from './stamp_camera.js';
 import { startCrop, handleCropInput, finalizeWarp } from './stamp_crop.js';
 import { setupRefinement, handleRefineDraw, processFinalStamp, applyLiveContrast, triggerUndo, toggleInvert } from './stamp_refine.js';
+import { playReturnSound } from './audio.js';
 
 let currentStationId = null;
 let viewingStationId = null;
@@ -195,6 +196,7 @@ export function initStampUI(refreshCallback) {
 
     document.getElementById("confirm-delete-btn").onclick = async () => {
         await deleteStamp(viewingStationId);
+        playReturnSound();
         deleteConfirmModal.classList.add('opacity-0', 'pointer-events-none');
         deleteConfirmBox.classList.add('scale-95');
         deleteConfirmBox.classList.remove('scale-100');
