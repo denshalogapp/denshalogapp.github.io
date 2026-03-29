@@ -444,6 +444,91 @@
         </div>
     </div>
 
+<div id="create-post-container" class="fixed inset-0 z-[120] bg-white dark:bg-slate-900 overflow-y-auto transition-transform duration-500 ease-in-out translate-y-full pointer-events-none flex flex-col">
+        <div class="px-6 pb-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between border-b-[5px] border-black dark:border-slate-600 bg-white dark:bg-slate-900 sticky top-0 z-10">
+            <h2 class="text-3xl font-black uppercase tracking-tighter dark:text-white">New Post</h2>
+            <button id="close-create-post-btn" class="w-12 h-12 border-[4px] border-black dark:border-slate-600 rounded-full flex items-center justify-center bg-gray-100 dark:bg-slate-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
+                <svg class="w-6 h-6 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="4"><path d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="flex-1 p-6 pb-[calc(2rem+env(safe-area-inset-bottom))] flex flex-col items-center gap-6 bg-white dark:bg-slate-900 w-full max-w-md mx-auto">
+            <div class="w-full aspect-square bg-gray-100 dark:bg-slate-800 border-[5px] border-black dark:border-slate-600 rounded-[32px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-center relative overflow-hidden">
+                <video id="feed-camera-feed" class="absolute inset-0 w-full h-full object-cover hidden" autoplay playsinline></video>
+                <img id="feed-preview-image" class="absolute inset-0 w-full h-full object-cover hidden z-10" />
+                <canvas id="feed-camera-canvas" class="hidden"></canvas>
+                <div id="feed-camera-placeholder" class="flex flex-col items-center justify-center">
+                    <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                        <path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span class="text-gray-400 dark:text-gray-500 font-black uppercase tracking-tighter text-center">Loading...</span>
+                </div>
+            </div>
+            <div id="feed-capture-actions" class="w-full flex gap-4">
+                <button id="capture-feed-btn" class="flex-1 bg-[#B2FF59] border-[5px] border-black rounded-2xl py-4 text-black font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all flex flex-col items-center justify-center gap-2">
+                    Capture
+                </button>
+                <label for="upload-feed-input" class="flex-1 bg-[#40C4FF] border-[5px] border-black rounded-2xl py-4 text-black font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all cursor-pointer flex flex-col items-center justify-center gap-2 text-center">
+                    Upload
+                    <input type="file" id="upload-feed-input" accept="image/*" class="hidden">
+                </label>
+            </div>
+            <div id="feed-save-actions" class="w-full hidden flex-col gap-6">
+                <button id="retake-feed-btn" class="w-full bg-gray-200 dark:bg-slate-700 border-[4px] border-black dark:border-slate-600 rounded-xl py-3 text-black dark:text-white font-black text-sm uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                    Retake Photo
+                </button>
+                <div class="flex flex-col gap-2 w-full">
+                    <label class="text-xs font-black uppercase tracking-widest dark:text-gray-300">Caption</label>
+                    <textarea id="post-caption-input" rows="3" placeholder="Write something..." class="w-full bg-gray-100 dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 rounded-2xl p-4 text-sm font-bold placeholder-gray-400 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-700 transition-colors"></textarea>
+                </div>
+                <div class="flex flex-col gap-2 w-full">
+                    <label class="text-xs font-black uppercase tracking-widest dark:text-gray-300">Tag (Optional)</label>
+                    <select id="post-tag-input" class="w-full bg-gray-100 dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 rounded-2xl p-4 text-sm font-black uppercase dark:text-white focus:outline-none transition-colors appearance-none">
+                        <option value="">No Tag</option>
+                        <option value="New Stamp Collected">New Stamp Collected</option>
+                        <option value="New Train Model">New Train Model</option>
+                        <option value="New Station Visited">New Station Visited</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-2 w-full">
+                    <label class="text-xs font-black uppercase tracking-widest dark:text-gray-300">Station (Optional)</label>
+                    <div class="relative w-full">
+                        <input type="text" id="post-station-search-input" placeholder="Search station..." class="w-full bg-gray-100 dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 rounded-2xl p-4 text-sm font-bold uppercase placeholder-gray-400 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-700 transition-colors" autocomplete="off">
+                        <div id="post-station-search-results" class="absolute bottom-full mb-2 left-0 right-0 bg-white dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 rounded-[20px] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hidden z-50 max-h-48 overflow-y-auto" style="overscroll-behavior: contain;"></div>
+                    </div>
+                    <input type="hidden" id="post-station-id-hidden">
+                </div>
+                </div>
+                <button id="submit-post-btn" class="w-full bg-[#FF80AB] border-[5px] border-black rounded-2xl py-4 text-black font-black text-2xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all mt-4">
+                    Post It!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="post-detail-container" class="fixed inset-0 z-[120] bg-white dark:bg-slate-900 overflow-y-auto transition-transform duration-500 ease-in-out translate-x-full pointer-events-none flex flex-col">
+        <div class="px-6 pb-6 pt-[calc(1.5rem+env(safe-area-inset-top))] flex items-center justify-between border-b-[5px] border-black dark:border-slate-600 bg-white dark:bg-slate-900 sticky top-0 z-10">
+            <button id="close-post-detail-btn" class="w-12 h-12 border-[4px] border-black dark:border-slate-600 rounded-full flex items-center justify-center bg-gray-100 dark:bg-slate-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all">
+                <svg class="w-6 h-6 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="4"><path d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <h2 class="text-2xl font-black uppercase tracking-tighter dark:text-white">Post</h2>
+            <div class="w-12"></div>
+        </div>
+        <div class="flex-1 overflow-y-auto pb-32">
+            <div id="post-detail-content" class="p-6 border-b-[4px] border-black dark:border-slate-600"></div>
+            <div class="p-6">
+                <h3 class="text-xl font-black uppercase tracking-tighter mb-6 dark:text-white">Talk</h3>
+                <div id="post-comments-list" class="flex flex-col gap-4"></div>
+            </div>
+        </div>
+        <div class="fixed bottom-0 left-0 w-full bg-white dark:bg-slate-900 border-t-[5px] border-black dark:border-slate-600 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] z-20 flex gap-3">
+            <input type="text" id="comment-text-input" placeholder="Say something..." class="flex-1 bg-gray-100 dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 rounded-xl px-4 py-3 text-sm font-black uppercase placeholder-gray-400 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-slate-700 transition-colors">
+            <button id="submit-comment-btn" class="bg-[#40C4FF] border-[4px] border-black rounded-xl px-6 py-3 text-black font-black text-sm uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                Send
+            </button>
+        </div>
+    </div>
+
     <script type="module" src="javascript/firebase.js"></script>
     <script type="module" src="javascript/user.js"></script>
     <script type="module" src="javascript/map_utils.js"></script>
@@ -454,6 +539,7 @@
     <script type="module" src="javascript/search.js"></script>
     <script type="module" src="javascript/list.js"></script>
     <script type="module" src="javascript/settings.js"></script>
+    <script type="module" src="javascript/feed.js"></script>
     <script type="module" src="javascript/main.js"></script>
 </body>
 </html>
