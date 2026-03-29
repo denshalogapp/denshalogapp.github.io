@@ -27,18 +27,12 @@ window.clearLineFilter = function() {
 window.initMap = async function() {
     const centerView = { lat: 35.6325, lng: 139.6525 };
     map = new google.maps.Map(document.getElementById("map"), {
+        mapId: "DEMO_MAP_ID",
         zoom: 14.8, 
         minZoom: 11,
         isFractionalZoomEnabled: true,
         center: centerView,
-        disableDefaultUI: true,
-        styles: window.getInitialMapStyles?.() || [
-            { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-            { featureType: 'landscape', stylers: [{ color: '#A5D6A7' }] },
-            { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-            { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-            { featureType: 'administrative', stylers: [{ visibility: 'off' }] },
-        ]
+        disableDefaultUI: true
     });
 
     window.map = map;
@@ -338,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const gScript = document.createElement('script');
-gScript.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}&callback=initMap&libraries=places&loading=async`;
+gScript.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_MAPS_KEY}&callback=initMap&libraries=places,marker&loading=async`;
 gScript.async = true;
 gScript.defer = true;
 document.head.appendChild(gScript);

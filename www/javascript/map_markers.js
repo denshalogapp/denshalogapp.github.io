@@ -22,26 +22,32 @@ export function renderVisibleMarkers(map, allStations, lineColors, activeLineFil
             const lineData = lineColors[lineKey];
             const markerColor = lineData?.color || "#000000";
             const visited = window.isVisited?.(station.id);
+            const isVisible = !(activeLineFilter && String(station.line_id) !== activeLineFilter);
 
             if (!markers[station.id]) {
-                const markerMap = activeLineFilter && String(station.line_id) !== activeLineFilter ? null : map;
-                const marker = new google.maps.Marker({
+                const size = currentScale * 2;
+                const el = document.createElement('div');
+                el.style.width = `${size}px`;
+                el.style.height = `${size}px`;
+                el.style.backgroundColor = visited ? lightenColor(markerColor, 40) : "#FFFFFF";
+                el.style.border = `${currentStroke}px solid ${markerColor}`;
+                el.style.borderRadius = '50%';
+                el.style.transform = 'translateY(50%)'; 
+                el.style.cursor = 'pointer';
+                el.style.boxSizing = 'border-box';
+                el.style.transition = 'background-color 0.2s ease, width 0.1s ease, height 0.1s ease, border-width 0.1s ease';
+
+                const marker = new google.maps.marker.AdvancedMarkerElement({
                     position: { lat: station.displayLat, lng: station.displayLon },
-                    map: markerMap,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: currentScale,
-                        fillColor: visited ? lightenColor(markerColor, 40) : "#FFFFFF",
-                        fillOpacity: 1,
-                        strokeWeight: currentStroke,
-                        strokeColor: markerColor,
-                    },
-                    zIndex: 2 
+                    map: isVisible ? map : null,
+                    content: el,
+                    zIndex: 2,
+                    title: station.station_name_en || "Station"
                 });
 
-                marker.addListener('click', () => {
+                marker.addListener('gmp-click', () => {
                     const currentVisited = window.isVisited?.(station.id);
-                    showTooltip(marker.getPosition(), {
+                    showTooltip({ lat: station.displayLat, lng: station.displayLon }, {
                         stationId: station.id,
                         stationName: station.station_name_en || "Unknown Station",
                         lineName: lineData?.name_en || `Line ${lineKey}`,
@@ -50,41 +56,48 @@ export function renderVisibleMarkers(map, allStations, lineColors, activeLineFil
                     }, 'station');
                 });
 
-                markers[station.id] = marker;
+                markers[station.id] = { instance: marker, element: el };
             } else {
-                markers[station.id].setOptions({
-                    icon: {
-                        ...markers[station.id].getIcon(),
-                        fillColor: visited ? lightenColor(markerColor, 40) : "#FFFFFF"
-                    }
-                });
-
-                if (markers[station.id].getMap() !== map) {
-                    markers[station.id].setMap(map);
+                const markerObj = markers[station.id];
+                const size = currentScale * 2;
+                
+                markerObj.element.style.width = `${size}px`;
+                markerObj.element.style.height = `${size}px`;
+                markerObj.element.style.border = `${currentStroke}px solid ${markerColor}`;
+                markerObj.element.style.backgroundColor = visited ? lightenColor(markerColor, 40) : "#FFFFFF";
+                
+                if (isVisible && markerObj.instance.map !== map) {
+                    markerObj.instance.map = map;
+                } else if (!isVisible && markerObj.instance.map !== null) {
+                    markerObj.instance.map = null;
                 }
             }
-        } else if (markers[station.id] && markers[station.id].getMap() !== null) {
-            markers[station.id].setMap(null);
+        } else if (markers[station.id] && markers[station.id].instance.map !== null) {
+            markers[station.id].instance.map = null;
         }
     });
 }
 
 export function updateUserMarker(map, pos) {
     if (!userMarker) {
-        userMarker = new google.maps.Marker({
+        const el = document.createElement('div');
+        el.style.width = '20px';
+        el.style.height = '20px';
+        el.style.backgroundColor = '#4285F4';
+        el.style.border = '4px solid #FFFFFF';
+        el.style.borderRadius = '50%';
+        el.style.transform = 'translateY(50%)';
+        el.style.boxSizing = 'border-box';
+        el.style.boxShadow = '0px 0px 4px rgba(0,0,0,0.4)';
+
+        userMarker = new google.maps.marker.AdvancedMarkerElement({
             position: pos,
             map: map,
-            icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 10,
-                fillColor: "#4285F4",
-                fillOpacity: 1,
-                strokeWeight: 4,
-                strokeColor: "#FFFFFF",
-            },
-            zIndex: 999
+            content: el,
+            zIndex: 999,
+            title: "You are here"
         });
     } else {
-        userMarker.setPosition(pos);
+        userMarker.position = pos;
     }
 }
