@@ -3,6 +3,7 @@ import { auth } from './firebase.js';
 import { signOut } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { showAuthScreen } from './auth.js'; // Import the auth screen trigger
 
 const DARK_MODE_KEY = 'eki-dark-mode';
 const SOUND_KEY = 'eki-sound';
@@ -103,14 +104,14 @@ export function initSettingsFrame() {
 
     if (signOutBtn) {
         if (auth.currentUser && auth.currentUser.isAnonymous) {
-            signOutBtn.disabled = true;
-            signOutBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-300');
-            signOutBtn.classList.remove('active:translate-y-[4px]', 'active:translate-x-[4px]', 'active:shadow-none', 'hover:translate-y-[2px]'); 
-            signOutBtn.innerText = "Sign Out (Guest)";
+            // Guest User: Turn the button into a Sign Up prompt
+            signOutBtn.innerText = "Sign In / Sign Up";
+            signOutBtn.onclick = () => {
+                showAuthScreen();
+            };
         } else {
-            signOutBtn.disabled = false;
-            signOutBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-300');
-            
+            // Registered User: Keep it as a Sign Out button
+            signOutBtn.innerText = "Sign Out";
             signOutBtn.onclick = async () => {
                 try {
                     localStorage.clear();
@@ -121,12 +122,14 @@ export function initSettingsFrame() {
                         try {
                             await GoogleAuth.signOut();
                         } catch (e) {
+                            console.warn("Google Auth Sign Out bypassed:", e);
                         }
                     }
 
                     await signOut(auth);
                     window.location.reload(); 
                 } catch (err) {
+                    console.error("Error signing out:", err);
                 }
             };
         }
