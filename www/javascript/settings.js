@@ -122,9 +122,8 @@ export function initSettingsFrame() {
     }
 
     if (signOutBtn) {
-        if (authUnsubscribe) authUnsubscribe();
-        
-        authUnsubscribe = onAuthStateChanged(auth, (user) => {
+        // Create a reusable function to update the button
+        const updateAuthBtnUI = (user) => {
             if (!user || user.isAnonymous) {
                 signOutBtn.innerText = "Sign In / Create An Account";
                 signOutBtn.onclick = () => {
@@ -137,7 +136,7 @@ export function initSettingsFrame() {
                     try {
                         localStorage.clear();
                         sessionStorage.clear();
-                        await idbClear();
+                        import('./idb.js').then(m => m.idbClear());
                         
                         if (Capacitor.isNativePlatform()) {
                             try {
@@ -150,7 +149,14 @@ export function initSettingsFrame() {
                     } catch (err) {}
                 };
             }
-        });
+        };
+
+        // 1. Synchronous check to instantly prevent the UI flash
+        updateAuthBtnUI(auth.currentUser);
+
+        // 2. Attach the listener to handle any background state changes
+        if (authUnsubscribe) authUnsubscribe();
+        authUnsubscribe = onAuthStateChanged(auth, updateAuthBtnUI);
     }
 
     if (refreshBtn) {
