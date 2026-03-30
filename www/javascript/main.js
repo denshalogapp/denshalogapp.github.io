@@ -6,6 +6,7 @@ import { initModelUI } from './model_ui.js';
 import { initSettings } from './settings.js';
 import { initAuth } from './auth.js';
 import { Capacitor } from '@capacitor/core';
+import './profile.js';
 
 const platform = Capacitor.getPlatform();
 document.documentElement.classList.add(platform);

@@ -1,34 +1,40 @@
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { Capacitor } from '@capacitor/core';
 import { auth, db, googleProvider } from './firebase.js';
 import { 
     onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
-    signInAnonymously, signInWithPopup, linkWithCredential, linkWithPopup, EmailAuthProvider 
+    signInAnonymously, linkWithCredential, linkWithPopup, EmailAuthProvider 
 } from "firebase/auth";
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { setCurrentUser, initProfileSync } from './user.js';
 import { initFeedFrame } from './feed.js';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { GoogleAuthProvider, signInWithCredential, signInWithPopup } from "firebase/auth";
+import { Capacitor } from '@capacitor/core';
 
 let isSignUpMode = false;
 let isInitialLoad = true;
 
 export function showAuthScreen() {
     const authContainer = document.getElementById('auth-container');
+    const authAnonBtn = document.getElementById('auth-anon-btn');
+    const authCloseBtn = document.getElementById('auth-close-btn');
     
     authContainer.classList.remove('hidden');
     void authContainer.offsetWidth;
     authContainer.classList.remove('translate-y-full');
     
     if (auth.currentUser && auth.currentUser.isAnonymous) {
-        document.getElementById('auth-close-btn').classList.remove('hidden');
-        document.getElementById('auth-anon-btn').classList.add('hidden');
+        if (authCloseBtn) authCloseBtn.classList.remove('hidden');
+        if (authAnonBtn) {
+            authAnonBtn.classList.remove('hidden');
+            authAnonBtn.innerText = "Continue as Guest";
+        }
         
-        isSignUpMode = true;
-        document.getElementById('auth-username').classList.remove('hidden');
-        document.getElementById('auth-username').required = true;
-        document.getElementById('auth-identifier').placeholder = "Email Address";
-        document.getElementById('auth-submit-btn').innerText = "Save Data & Sign Up";
-        document.getElementById('auth-toggle-mode').innerText = "Already have an account? Log In";
+        isSignUpMode = false;
+        document.getElementById('auth-username').classList.add('hidden');
+        document.getElementById('auth-username').required = false;
+        document.getElementById('auth-identifier').placeholder = "Email or Username";
+        document.getElementById('auth-submit-btn').innerText = "Log In";
+        document.getElementById('auth-toggle-mode').innerText = "Need an account? Sign Up";
     }
 }
 
@@ -80,7 +86,6 @@ export function initAuth() {
             initProfileSync();
             initFeedFrame();
         } else {
-            // User is signed out
             if (isInitialLoad) {
                 authContainer.style.transition = 'none';
                 authContainer.classList.remove('hidden', 'translate-y-full');
@@ -92,11 +97,12 @@ export function initAuth() {
                 authContainer.classList.remove('translate-y-full');
             }
 
-            // Hide the X button so they must log in or play as guest
             if (authCloseBtn) authCloseBtn.classList.add('hidden');
-            if (authAnonBtn) authAnonBtn.classList.remove('hidden');
+            if (authAnonBtn) {
+                authAnonBtn.classList.remove('hidden');
+                authAnonBtn.innerText = "Play as Guest";
+            }
 
-            // Reset form back to default "Log In" state
             isSignUpMode = false;
             authUsername.classList.add('hidden');
             authUsername.required = false;
@@ -147,7 +153,7 @@ export function initAuth() {
                     const credential = EmailAuthProvider.credential(currentEmail, password);
                     await linkWithCredential(auth.currentUser, credential);
                     await setDoc(doc(db, 'users', auth.currentUser.uid), { username, email: currentEmail }, { merge: true });
-                    window.location.reload();
+                    window.location.reload(); 
                 } else {
                     const cred = await createUserWithEmailAndPassword(auth, currentEmail, password);
                     await setDoc(doc(db, 'users', cred.user.uid), { username, email: currentEmail }, { merge: true });
@@ -169,44 +175,51 @@ export function initAuth() {
     };
 
     authGoogleBtn.onclick = async () => {
-    errorMsg.classList.add('hidden');
-    try {
-        if (Capacitor.isNativePlatform()) {
-            // 1. NATIVE CAPACITOR FLOW
-            GoogleAuth.initialize({
-              clientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-              scopes: ['profile', 'email'],
-              grantOfflineAccess: true,
-            });
+        errorMsg.classList.add('hidden');
+        try {
+            if (Capacitor.isNativePlatform()) {
+                GoogleAuth.initialize({
+                  clientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+                  scopes: ['profile', 'email'],
+                  grantOfflineAccess: true,
+                });
 
-            const googleUser = await GoogleAuth.signIn();
-            const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
+                const googleUser = await GoogleAuth.signIn();
+                const credential = GoogleAuthProvider.credential(googleUser.authentication.idToken);
 
-            if (auth.currentUser && auth.currentUser.isAnonymous) {
-                await linkWithCredential(auth.currentUser, credential);
-                window.location.reload();
+                if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    await linkWithCredential(auth.currentUser, credential);
+                    window.location.reload();
+                } else {
+                    await signInWithCredential(auth, credential);
+                }
             } else {
-                await signInWithCredential(auth, credential);
+                if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    await linkWithPopup(auth.currentUser, googleProvider);
+                    window.location.reload(); 
+                } else {
+                    await signInWithPopup(auth, googleProvider);
+                }
             }
-        } else {
-            // 2. STANDARD WEB FLOW (for testing in browser)
-            if (auth.currentUser && auth.currentUser.isAnonymous) {
-                await linkWithPopup(auth.currentUser, googleProvider);
-                window.location.reload(); 
-            } else {
-                await signInWithPopup(auth, googleProvider);
-            }
+        } catch (err) {
+            errorMsg.innerText = err.message;
+            errorMsg.classList.remove('hidden');
         }
-    } catch (err) {
-        errorMsg.innerText = err.message;
-        errorMsg.classList.remove('hidden');
-    }
-};
+    };
 
     authAnonBtn.onclick = async () => {
         errorMsg.classList.add('hidden');
         try {
-            await signInAnonymously(auth);
+            if (auth.currentUser && auth.currentUser.isAnonymous) {
+                authContainer.classList.add('translate-y-full');
+                setTimeout(() => {
+                    if (authContainer.classList.contains('translate-y-full')) {
+                        authContainer.classList.add('hidden');
+                    }
+                }, 500);
+            } else {
+                await signInAnonymously(auth);
+            }
         } catch (err) {
             errorMsg.innerText = err.message;
             errorMsg.classList.remove('hidden');

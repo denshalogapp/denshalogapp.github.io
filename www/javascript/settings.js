@@ -3,7 +3,7 @@ import { auth } from './firebase.js';
 import { signOut } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
-import { showAuthScreen } from './auth.js'; // Import the auth screen trigger
+import { showAuthScreen } from './auth.js';
 
 const DARK_MODE_KEY = 'eki-dark-mode';
 const SOUND_KEY = 'eki-sound';
@@ -104,13 +104,11 @@ export function initSettingsFrame() {
 
     if (signOutBtn) {
         if (auth.currentUser && auth.currentUser.isAnonymous) {
-            // Guest User: Turn the button into a Sign Up prompt
             signOutBtn.innerText = "Sign In / Sign Up";
             signOutBtn.onclick = () => {
                 showAuthScreen();
             };
         } else {
-            // Registered User: Keep it as a Sign Out button
             signOutBtn.innerText = "Sign Out";
             signOutBtn.onclick = async () => {
                 try {
@@ -136,10 +134,23 @@ export function initSettingsFrame() {
     }
 
     if (refreshBtn) {
-        refreshBtn.onclick = async function() {
-            localStorage.clear();
-            await idbClear();
-            window.location.reload();
+        refreshBtn.onclick = function(e) {
+            e.preventDefault();
+            
+            const loadingOverlay = document.getElementById('app-loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+                loadingOverlay.classList.add('opacity-100');
+                loadingOverlay.style.zIndex = '9999';
+            }
+            
+            setTimeout(async () => {
+                try {
+                    localStorage.clear();
+                    await idbClear();
+                } catch (err) {}
+                window.location.reload();
+            }, 150);
         };
     }
 }

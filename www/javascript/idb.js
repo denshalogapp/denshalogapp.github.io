@@ -43,3 +43,8 @@ export async function idbClear() {
         tx.onerror = e => reject(e.target.error);
     });
 }
+
+export async function getStamps() {
+    const stamps = await idbGet('stamps');
+    return stamps || [];
+}

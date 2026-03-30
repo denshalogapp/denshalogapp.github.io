@@ -18,6 +18,10 @@ export const userStampOriginals = {};
 export const userStampDates = {};
 export const userModels = {};
 
+export function getVisitedStations() {
+    return visitedStations;
+}
+
 export function isVisited(stationId) {
     return visitedStations.includes(String(stationId));
 }
