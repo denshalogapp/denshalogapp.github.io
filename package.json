@@ -1,8 +1,10 @@
 {
   "dependencies": {
     "@capacitor/android": "^8.2.0",
+    "@capacitor/camera": "^8.0.2",
     "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.2.0",
+    "@capacitor/geolocation": "^8.1.0",
     "@capacitor/ios": "^8.2.0",
     "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@google/generative-ai": "^0.24.1",

@@ -239,6 +239,11 @@ export function initStampScanner() {
         clearFilterBtn.onclick = () => {
             document.getElementById('active-filter-pill').classList.add('hidden');
             window.filterToLine?.(null);
+            
+            // Force the map to re-evaluate visible markers without the filter
+            if (window.map) {
+                 google.maps.event.trigger(window.map, 'idle'); 
+            }
         };
     }
 
