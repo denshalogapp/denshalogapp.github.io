@@ -633,6 +633,36 @@
     </div>
 </div>
 
+<div id="generic-alert-modal" class="fixed inset-0 z-[400] bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col items-center justify-center p-6">
+        <div id="generic-alert-box" class="w-full max-w-sm bg-white border-[5px] border-black rounded-[32px] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-6 text-center transform transition-transform scale-95 duration-300">
+            <h3 id="generic-alert-title" class="text-3xl font-black uppercase tracking-tighter leading-tight">Notice</h3>
+            <p id="generic-alert-message" class="text-sm font-bold text-gray-500 uppercase tracking-tighter leading-tight"></p>
+            <button id="generic-alert-btn" class="w-full bg-[#B2FF59] border-[4px] border-black rounded-xl py-3 text-black font-black text-lg uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all mt-2">
+                Okay
+            </button>
+        </div>
+    </div>
+
+    <div id="generic-confirm-modal" class="fixed inset-0 z-[400] bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col items-center justify-center p-6">
+        <div id="generic-confirm-box" class="w-full max-w-sm bg-white border-[5px] border-black rounded-[32px] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-6 text-center transform transition-transform scale-95 duration-300">
+            <div class="w-16 h-16 bg-[#FF5252] border-[4px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] mb-2">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 id="generic-confirm-title" class="text-3xl font-black uppercase tracking-tighter leading-tight">Confirm</h3>
+            <p id="generic-confirm-message" class="text-sm font-bold text-gray-500 uppercase tracking-tighter leading-tight"></p>
+            <div class="flex gap-4 w-full mt-2">
+                <button id="generic-confirm-cancel" class="flex-1 bg-gray-200 border-[4px] border-black rounded-xl py-3 text-black font-black text-lg uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                    Cancel
+                </button>
+                <button id="generic-confirm-ok" class="flex-1 bg-[#FF5252] border-[4px] border-black rounded-xl py-3 text-white font-black text-lg uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="javascript/firebase.js"></script>
     <script type="module" src="javascript/user.js"></script>
     <script type="module" src="javascript/map_utils.js"></script>

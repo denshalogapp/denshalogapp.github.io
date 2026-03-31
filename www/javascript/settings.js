@@ -82,9 +82,7 @@ export function initSettingsFrame() {
     const darkModeToggle = document.getElementById('dark-mode-toggle');
     const soundToggle = document.getElementById('sound-toggle');
     const declineRequestsToggle = document.getElementById('decline-requests-toggle');
-    const signOutBtn = document.getElementById('sign-out-btn');
     const refreshBtn = document.getElementById('refresh-db-btn');
-    const deleteBtn = document.getElementById('delete-account-btn');
 
     const savedDark = localStorage.getItem(DARK_MODE_KEY) === 'true';
     const savedSound = localStorage.getItem(SOUND_KEY) !== 'false';
@@ -122,18 +120,20 @@ export function initSettingsFrame() {
         };
     }
 
-    if (signOutBtn) {
-        const updateAuthBtnUI = (user) => {
+    const updateAuthBtnUI = (user) => {
+        const currentSignOutBtn = document.getElementById('sign-out-btn');
+        const currentDeleteBtn = document.getElementById('delete-account-btn');
+
+        if (currentSignOutBtn) {
             if (!user || user.isAnonymous) {
-                signOutBtn.innerText = "Sign In / Create An Account";
-                signOutBtn.onclick = () => {
+                currentSignOutBtn.innerText = "Sign In / Create An Account";
+                currentSignOutBtn.onclick = () => {
                     window.resetUI?.();
                     showAuthScreen();
                 };
-                if (deleteBtn) deleteBtn.classList.add('hidden');
             } else {
-                signOutBtn.innerText = "Sign Out";
-                signOutBtn.onclick = async () => {
+                currentSignOutBtn.innerText = "Sign Out";
+                currentSignOutBtn.onclick = async () => {
                     try {
                         localStorage.clear();
                         sessionStorage.clear();
@@ -149,31 +149,67 @@ export function initSettingsFrame() {
                         window.location.reload(); 
                     } catch (err) {}
                 };
+            }
+        }
 
-                if (deleteBtn) {
-                    deleteBtn.classList.remove('hidden');
-                    deleteBtn.onclick = async () => {
-                        if (window.confirm("Are you absolutely sure you want to delete your account? This will permanently delete your data and cannot be undone.")) {
-                            try {
-                                await deleteUser(auth.currentUser);
-                                localStorage.clear();
-                                sessionStorage.clear();
-                                import('./idb.js').then(m => m.idbClear());
-                                window.location.reload();
-                            } catch (err) {
-                                alert("Failed to delete account. You may need to sign out and sign back in to verify your identity before deleting. Error: " + err.message);
-                            }
+        if (currentDeleteBtn) {
+            if (user) {
+                currentDeleteBtn.classList.remove('hidden');
+                currentDeleteBtn.onclick = () => {
+                    const confirmModal = document.getElementById('generic-confirm-modal');
+                    const confirmBox = document.getElementById('generic-confirm-box');
+                    
+                    document.getElementById('generic-confirm-title').innerText = "Delete Account?";
+                    document.getElementById('generic-confirm-message').innerText = "This will permanently delete your data and cannot be undone. Are you absolutely sure?";
+                    
+                    confirmModal.classList.remove('opacity-0', 'pointer-events-none');
+                    confirmBox.classList.remove('scale-95');
+                    confirmBox.classList.add('scale-100');
+
+                    document.getElementById('generic-confirm-cancel').onclick = () => {
+                        confirmModal.classList.add('opacity-0', 'pointer-events-none');
+                        confirmBox.classList.add('scale-95');
+                        confirmBox.classList.remove('scale-100');
+                    };
+
+                    document.getElementById('generic-confirm-ok').onclick = async () => {
+                        confirmModal.classList.add('opacity-0', 'pointer-events-none');
+                        confirmBox.classList.add('scale-95');
+                        confirmBox.classList.remove('scale-100');
+                        
+                        try {
+                            await deleteUser(user);
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            import('./idb.js').then(m => m.idbClear());
+                            window.location.reload();
+                        } catch (err) {
+                            const alertModal = document.getElementById('generic-alert-modal');
+                            const alertBox = document.getElementById('generic-alert-box');
+                            document.getElementById('generic-alert-title').innerText = "Action Failed";
+                            document.getElementById('generic-alert-message').innerText = "Failed to delete account. You may need to sign out and sign back in to verify your identity before deleting.";
+                            
+                            alertModal.classList.remove('opacity-0', 'pointer-events-none');
+                            alertBox.classList.remove('scale-95');
+                            alertBox.classList.add('scale-100');
+
+                            document.getElementById('generic-alert-btn').onclick = () => {
+                                alertModal.classList.add('opacity-0', 'pointer-events-none');
+                                alertBox.classList.add('scale-95');
+                                alertBox.classList.remove('scale-100');
+                            };
                         }
                     };
-                }
+                };
+            } else {
+                currentDeleteBtn.classList.add('hidden');
             }
-        };
+        }
+    };
 
-        updateAuthBtnUI(auth.currentUser);
-
-        if (authUnsubscribe) authUnsubscribe();
-        authUnsubscribe = onAuthStateChanged(auth, updateAuthBtnUI);
-    }
+    if (authUnsubscribe) authUnsubscribe();
+    updateAuthBtnUI(auth.currentUser);
+    authUnsubscribe = onAuthStateChanged(auth, updateAuthBtnUI);
 
     if (refreshBtn) {
         refreshBtn.onclick = function(e) {

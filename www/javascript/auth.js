@@ -93,30 +93,142 @@ export function initAuth() {
                 if(authIdentifier) authIdentifier.placeholder = "Email Address";
                 if(authSubmitBtn) authSubmitBtn.innerText = "Log In";
                 if(authToggleMode) authToggleMode.innerText = "Need an account? Sign Up";
-            } else if (!wasInitialLoad || !user.isAnonymous) {
-                authContainer.classList.add('translate-y-full');
-                setTimeout(() => {
-                    if (authContainer.classList.contains('translate-y-full')) {
-                        authContainer.classList.add('hidden');
-                    }
-                }, 500);
             }
 
             let username = user.isAnonymous ? "Guest" : "User";
             try {
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
+                
                 if (userDoc.exists() && userDoc.data().username) {
                     username = userDoc.data().username;
+                    
+                    if (!wasInitialLoad || !user.isAnonymous) {
+                        authContainer.classList.add('translate-y-full');
+                        setTimeout(() => {
+                            if (authContainer.classList.contains('translate-y-full')) {
+                                authContainer.classList.add('hidden');
+                            }
+                        }, 500);
+                    }
+                    
+                    setCurrentUser(user.uid, username, user.isAnonymous);
+                    initProfileSync();
+                    initFeedFrame();
+                    
                 } else if (!user.isAnonymous) {
-                    username = user.displayName || user.email.split('@')[0];
-                    await setDoc(doc(db, 'users', user.uid), { username: username, email: user.email }, { merge: true });
+                    const emailQuery = query(collection(db, 'users'), where("email", "==", user.email));
+                    const emailSnap = await getDocs(emailQuery);
+                    
+                    let isDuplicateEmail = false;
+                    emailSnap.forEach(docSnap => {
+                        if (docSnap.id !== user.uid) isDuplicateEmail = true;
+                    });
+
+                    if (isDuplicateEmail) {
+                        import('firebase/auth').then(async ({ deleteUser, signOut }) => {
+                            try { await deleteUser(user); } catch(e) {}
+                            await signOut(auth);
+                            if (errorMsg) {
+                                errorMsg.innerText = "An account with this email already exists. Please log in with your original method.";
+                                errorMsg.classList.remove('hidden');
+                            }
+                        });
+                        return;
+                    }
+
+                    if (isSignUpMode && authUsername && authUsername.value.trim()) {
+                        const proposedName = authUsername.value.trim();
+                        const nameQuery = query(collection(db, 'users'), where("username", "==", proposedName));
+                        const nameSnap = await getDocs(nameQuery);
+                        
+                        if (!nameSnap.empty) {
+                            import('firebase/auth').then(async ({ deleteUser, signOut }) => {
+                                try { await deleteUser(user); } catch(e) {}
+                                await signOut(auth);
+                                if (errorMsg) {
+                                    errorMsg.innerText = "This username is already taken. Please try another one.";
+                                    errorMsg.classList.remove('hidden');
+                                }
+                            });
+                            return;
+                        }
+
+                        username = proposedName;
+                        await setDoc(doc(db, 'users', user.uid), { username: username, email: user.email }, { merge: true });
+                        
+                        authContainer.classList.add('translate-y-full');
+                        setTimeout(() => {
+                            if (authContainer.classList.contains('translate-y-full')) authContainer.classList.add('hidden');
+                        }, 500);
+                        
+                        setCurrentUser(user.uid, username, user.isAnonymous);
+                        initProfileSync();
+                        initFeedFrame();
+                    } else {
+                        authContainer.style.transition = 'none';
+                        authContainer.classList.remove('hidden', 'translate-y-full');
+                        void authContainer.offsetWidth;
+                        authContainer.style.transition = '';
+
+                        isSignUpMode = true;
+                        if(authUsername) {
+                            authUsername.classList.remove('hidden');
+                            authUsername.required = true;
+                            authUsername.placeholder = "Choose a Username";
+                        }
+                        
+                        if(authIdentifier) authIdentifier.classList.add('hidden');
+                        if(authPassword) authPassword.classList.add('hidden');
+                        if(authGoogleBtn) authGoogleBtn.classList.add('hidden');
+                        if(authAnonBtn) authAnonBtn.classList.add('hidden');
+                        if(authToggleMode) authToggleMode.classList.add('hidden');
+                        
+                        const orDivider = authGoogleBtn ? authGoogleBtn.previousElementSibling : null;
+                        if (orDivider && orDivider.classList.contains('flex')) {
+                            orDivider.classList.add('hidden');
+                        }
+
+                        const titleEl = document.querySelector('#auth-container h1');
+                        if(titleEl) titleEl.innerText = "Complete Profile";
+                        
+                        if(authSubmitBtn) authSubmitBtn.innerText = "Save Username";
+
+                        authForm.onsubmit = async (e) => {
+                            e.preventDefault();
+                            if(errorMsg) errorMsg.classList.add('hidden');
+                            
+                            const chosenName = authUsername.value.trim();
+                            if (!chosenName) {
+                                if(errorMsg) {
+                                    errorMsg.innerText = "Please enter a valid username to continue.";
+                                    errorMsg.classList.remove('hidden');
+                                }
+                                return;
+                            }
+
+                            const nameQuery = query(collection(db, 'users'), where("username", "==", chosenName));
+                            const nameSnap = await getDocs(nameQuery);
+                            if (!nameSnap.empty) {
+                                if(errorMsg) {
+                                    errorMsg.innerText = "This username is already taken. Please choose another one.";
+                                    errorMsg.classList.remove('hidden');
+                                }
+                                return;
+                            }
+
+                            await setDoc(doc(db, 'users', user.uid), { username: chosenName, email: user.email }, { merge: true });
+                            window.location.reload();
+                        };
+                        
+                        return;
+                    }
+                } else {
+                    setCurrentUser(user.uid, username, user.isAnonymous);
+                    initProfileSync();
+                    initFeedFrame();
                 }
             } catch (e) {
             }
-
-            setCurrentUser(user.uid, username, user.isAnonymous);
-            initProfileSync();
-            initFeedFrame();
 
         } else {
             if (wasInitialLoad) {
@@ -188,6 +300,14 @@ export function initAuth() {
                 let currentEmail = identifier;
                 if (!currentEmail.includes('@')) throw new Error("Please enter a valid email address for signup.");
 
+                const emailQuery = query(collection(db, 'users'), where("email", "==", currentEmail));
+                const emailSnap = await getDocs(emailQuery);
+                if (!emailSnap.empty) throw new Error("An account with this email already exists.");
+
+                const userQuery = query(collection(db, 'users'), where("username", "==", username));
+                const userSnap = await getDocs(userQuery);
+                if (!userSnap.empty) throw new Error("This username is already taken.");
+
                 if (auth.currentUser && auth.currentUser.isAnonymous) {
                     const credential = EmailAuthProvider.credential(currentEmail, password);
                     await linkWithCredential(auth.currentUser, credential);
@@ -215,6 +335,13 @@ export function initAuth() {
 
     authGoogleBtn.onclick = async () => {
         errorMsg.classList.add('hidden');
+        
+        if (isSignUpMode && !authUsername.value.trim()) {
+            errorMsg.innerText = "Please enter a username first to sign up with Google.";
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+
         try {
             if (Capacitor.isNativePlatform()) {
                 GoogleAuth.initialize({
