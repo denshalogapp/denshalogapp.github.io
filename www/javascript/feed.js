@@ -371,8 +371,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const caption = document.getElementById('post-caption-input').value.trim();
             const tag = document.getElementById('post-tag-input').value;
             const stationId = document.getElementById('post-station-id-hidden').value;
+            const errorEl = document.getElementById('post-submit-error');
             let stationName = '';
-            
+
+            if (errorEl) errorEl.classList.add('hidden');
+
             if (stationId && window.allStations) {
                 const lang = getLanguage();
                 const s = window.allStations.find(x => String(x.id) === String(stationId));
@@ -396,8 +399,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 commentsCount: 0
             };
 
-            await addDoc(collection(db, 'posts'), postData);
-            document.getElementById('create-post-container').classList.add('translate-y-full', 'pointer-events-none');
+            submitBtn.disabled = true;
+            try {
+                await addDoc(collection(db, 'posts'), postData);
+                document.getElementById('create-post-container').classList.add('translate-y-full', 'pointer-events-none');
+            } catch (err) {
+                if (errorEl) {
+                    errorEl.innerText = 'Failed to post. Please check your connection and try again.';
+                    errorEl.classList.remove('hidden');
+                }
+            } finally {
+                submitBtn.disabled = false;
+            }
         };
     }
 
