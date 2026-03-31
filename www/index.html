@@ -17,19 +17,18 @@
 <body class="min-h-screen relative font-sans overflow-x-hidden overflow-y-hidden">
 
 <div id="auth-container" class="fixed inset-0 z-[300] bg-[#40C4FF] flex flex-col items-center justify-center overflow-y-auto hidden transition-transform duration-500 ease-in-out translate-y-full">    
-    <div class="absolute top-8 right-8 z-50">
-        <div class="absolute top-8 right-8 z-50">
-    <div class="flex bg-white border-[4px] border-black rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-        <button id="auth-lang-en-btn" class="px-4 py-2 text-xs font-black uppercase transition-colors border-r-[4px] border-black focus:outline-none">EN</button>
-        <button id="auth-lang-ja-btn" class="px-4 py-2 text-xs font-black uppercase transition-colors focus:outline-none">JA</button>
-    </div>
-</div>
+    
+    <div class="absolute top-[calc(2rem+env(safe-area-inset-top))] left-1/2 transform -translate-x-1/2 z-50">
+        <div class="flex bg-white border-[4px] border-black rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <button id="auth-lang-en-btn" class="px-4 py-2 text-xs font-black uppercase transition-colors border-r-[4px] border-black focus:outline-none">EN</button>
+            <button id="auth-lang-ja-btn" class="px-4 py-2 text-xs font-black uppercase transition-colors focus:outline-none">JA</button>
+        </div>
     </div>
 
     <button id="auth-close-btn" class="absolute top-[calc(1rem+env(safe-area-inset-top))] left-8 w-12 h-12 bg-white border-[4px] border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all hidden z-50">
         <svg class="w-6 h-6" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="4"><path d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
-    <div class="w-[90%] max-w-sm bg-white border-[5px] border-black rounded-[32px] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-4 my-8 relative z-40">
+    <div class="w-[90%] max-w-sm bg-white border-[5px] border-black rounded-[32px] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center gap-4 my-8 relative z-40 mt-20">
         <h1 class="text-4xl font-black uppercase tracking-tighter text-center mb-2">Eki Story</h1>
         
         <div id="auth-error-message" class="w-full text-center text-[#FF5252] font-bold text-xs hidden"></div>
@@ -559,7 +558,6 @@
                     <input type="hidden" id="post-station-id-hidden">
                 </div>
                 </div>
-                <p id="post-submit-error" class="hidden text-center text-[#FF5252] font-bold text-sm"></p>
                 <button id="submit-post-btn" data-i18n="post.postIt" class="w-full bg-[#FF80AB] border-[5px] border-black rounded-2xl py-4 text-black font-black text-2xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all mt-4">
                     Post It!
                 </button>

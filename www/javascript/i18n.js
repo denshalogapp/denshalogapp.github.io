@@ -179,7 +179,7 @@ export const translations = {
         },
         camera: {
             newStamp: "新しいスタンプ",
-            newModel: "新しい車両",
+            newModel: "車両",
             loadingCamera: "カメラを起動中...",
             trainModel: "車両名 (例: E235系)",
             dateSpotted: "発見日",

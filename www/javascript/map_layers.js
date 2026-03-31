@@ -1,3 +1,5 @@
+import { getLanguage, t } from './i18n.js';
+
 export let polylines = [];
 export const polylinesByLine = {};
 
@@ -78,9 +80,12 @@ export function renderPolylines(map, allJoins, stationLookup, lineColors, showTo
                 const stationsOnLine = window.allStations.filter(s => String(s.line_id) === lineKey);
                 const visitedCount = stationsOnLine.filter(s => window.isVisited?.(s.id)).length;
                 const totalCount = lineData?.total_stations || stationsOnLine.length;
+                
+                const lang = getLanguage();
+                const lineName = lang === 'ja' ? (lineData?.name_jp || lineData?.name_en) : (lineData?.name_en || lineData?.name_jp);
 
                 showTooltip(e.latLng, {
-                    stationName: lineData?.name_en || "Unknown Line", 
+                    stationName: lineName || t('common.unknown'), 
                     color: lineData?.color || "#000000",
                     visitedCount: visitedCount,
                     totalCount: totalCount

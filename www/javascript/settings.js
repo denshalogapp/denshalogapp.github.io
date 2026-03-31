@@ -10,6 +10,7 @@ import { applyTranslations, getLanguage, setLanguage, t } from './i18n.js';
 const DARK_MODE_KEY = 'eki-dark-mode';
 const SOUND_KEY = 'eki-sound';
 const DECLINE_REQUESTS_KEY = 'eki-decline-requests';
+const LANG_KEY = 'eki-language';
 
 const LIGHT_STYLES = [
     { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
@@ -264,7 +265,19 @@ export function initSettingsFrame() {
             
             setTimeout(async () => {
                 try {
+                    // PRESERVE ESSENTIAL USER SETTINGS BEFORE CLEARING
+                    const lang = localStorage.getItem(LANG_KEY);
+                    const dark = localStorage.getItem(DARK_MODE_KEY);
+                    const sound = localStorage.getItem(SOUND_KEY);
+                    const decline = localStorage.getItem(DECLINE_REQUESTS_KEY);
+                    
                     localStorage.clear();
+                    
+                    if (lang) localStorage.setItem(LANG_KEY, lang);
+                    if (dark) localStorage.setItem(DARK_MODE_KEY, dark);
+                    if (sound) localStorage.setItem(SOUND_KEY, sound);
+                    if (decline) localStorage.setItem(DECLINE_REQUESTS_KEY, decline);
+
                     await idbClear();
                 } catch (err) {}
                 window.location.reload();

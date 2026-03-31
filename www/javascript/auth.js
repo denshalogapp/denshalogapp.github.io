@@ -9,6 +9,7 @@ import { setCurrentUser, initProfileSync } from './user.js';
 import { initFeedFrame } from './feed.js';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
+import { applyTranslations, getLanguage, setLanguage } from './i18n.js';
 
 let isSignUpMode = false;
 let isInitialLoad = true;
@@ -45,6 +46,9 @@ export function showAuthScreen() {
 }
 
 export function initAuth() {
+    // Initialize the language selector buttons for the auth screen
+    initAuthLanguageSelector();
+
     const authContainer = document.getElementById('auth-container');
     const authCloseBtn = document.getElementById('auth-close-btn');
     const authForm = document.getElementById('auth-form');
@@ -126,29 +130,29 @@ export function initAuth() {
                     });
 
                     if (isDuplicateEmail) {
-    try { await deleteUser(user); } catch(e) {}
-    await signOut(auth);
-    if (errorMsg) {
-        errorMsg.innerText = "An account with this email already exists. Please log in with your original method.";
-        errorMsg.classList.remove('hidden');
-    }
-    return;
-}
+                        try { await deleteUser(user); } catch(e) {}
+                        await signOut(auth);
+                        if (errorMsg) {
+                            errorMsg.innerText = "An account with this email already exists. Please log in with your original method.";
+                            errorMsg.classList.remove('hidden');
+                        }
+                        return;
+                    }
 
                     if (isSignUpMode && authUsername && authUsername.value.trim()) {
-    const proposedName = authUsername.value.trim();
-    const nameQuery = query(collection(db, 'users'), where("username", "==", proposedName));
-    const nameSnap = await getDocs(nameQuery);
-    
-    if (!nameSnap.empty) {
-        try { await deleteUser(user); } catch(e) {}
-        await signOut(auth);
-        if (errorMsg) {
-            errorMsg.innerText = "This username is already taken. Please try another one.";
-            errorMsg.classList.remove('hidden');
-        }
-        return;
-    }
+                        const proposedName = authUsername.value.trim();
+                        const nameQuery = query(collection(db, 'users'), where("username", "==", proposedName));
+                        const nameSnap = await getDocs(nameQuery);
+                        
+                        if (!nameSnap.empty) {
+                            try { await deleteUser(user); } catch(e) {}
+                            await signOut(auth);
+                            if (errorMsg) {
+                                errorMsg.innerText = "This username is already taken. Please try another one.";
+                                errorMsg.classList.remove('hidden');
+                            }
+                            return;
+                        }
 
                         username = proposedName;
                         await setDoc(doc(db, 'users', user.uid), { username: username, email: user.email }, { merge: true });
@@ -397,8 +401,6 @@ export function initAuth() {
         }
     };
 }
-
-import { applyTranslations, getLanguage, setLanguage } from './i18n.js';
 
 export function initAuthLanguageSelector() {
     const authLangEnBtn = document.getElementById('auth-lang-en-btn');
