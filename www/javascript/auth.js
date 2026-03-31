@@ -177,8 +177,8 @@ export function initAuth() {
                             authUsername.placeholder = "Choose a Username";
                         }
                         
-                        if(authIdentifier) authIdentifier.classList.add('hidden');
-                        if(authPassword) authPassword.classList.add('hidden');
+                        if(authIdentifier) { authIdentifier.classList.add('hidden'); authIdentifier.required = false; }
+                        if(authPassword) { authPassword.classList.add('hidden'); authPassword.required = false; }
                         if(authGoogleBtn) authGoogleBtn.classList.add('hidden');
                         if(authAnonBtn) authAnonBtn.classList.add('hidden');
                         if(authToggleMode) authToggleMode.classList.add('hidden');
