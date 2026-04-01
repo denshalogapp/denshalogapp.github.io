@@ -43,6 +43,17 @@ export async function initProfileFrame() {
 
     updateProfileCounts();
 
+    if (window.profileUserUnsub) {
+        window.profileUserUnsub();
+        window.profileUserUnsub = null;
+    }
+    if (window.profileRequestsUnsub) {
+        window.profileRequestsUnsub();
+        window.profileRequestsUnsub = null;
+    }
+    const friendsContainer = document.getElementById('friends-list-container');
+    if (friendsContainer) friendsContainer.classList.add('hidden');
+
     if (IS_ANONYMOUS || !CURRENT_USER_ID) {
         if (usernameEl) usernameEl.innerText = t('profile.guest');
         if (guestOverlay) {
@@ -115,15 +126,19 @@ export async function initProfileFrame() {
         };
     }
 
-    if (window.profileUserUnsub) {
-        window.profileUserUnsub();
-    }
-
     if (!CURRENT_USER_ID) return;
+
+    let lastFriendIdsJson = null;
+    let renderSeq = 0;
 
     window.profileUserUnsub = onSnapshot(doc(db, 'users', CURRENT_USER_ID), async (userSnap) => {
         const friendIds = userSnap.exists() ? (userSnap.data().friends || []) : [];
-        await renderFriendsList(friendIds);
+        const friendIdsJson = JSON.stringify(friendIds);
+        if (friendIdsJson === lastFriendIdsJson) return;
+        lastFriendIdsJson = friendIdsJson;
+
+        const seq = ++renderSeq;
+        await renderFriendsList(friendIds, seq, () => renderSeq);
     });
 
     const incomingQuery = query(
@@ -201,7 +216,7 @@ export async function initProfileFrame() {
     });
 }
 
-async function renderFriendsList(friendIds) {
+async function renderFriendsList(friendIds, seq, getSeq) {
     const container = document.getElementById('friends-list-container');
     const list = document.getElementById('friends-list');
     const noMsg = document.getElementById('no-friends-msg');
@@ -216,22 +231,38 @@ async function renderFriendsList(friendIds) {
     }
     if (noMsg) noMsg.classList.add('hidden');
 
-    const friendDocs = await Promise.all(friendIds.map(id => getDoc(doc(db, 'users', id))));
+    try {
+        const results = await Promise.allSettled(friendIds.map(id => getDoc(doc(db, 'users', id))));
 
-    friendDocs.forEach(friendSnap => {
-        if (!friendSnap.exists()) return;
-        const data = friendSnap.data();
-        const el = document.createElement('div');
-        el.className = "flex items-center gap-3 bg-gray-100 dark:bg-slate-700 border-[3px] border-black dark:border-slate-600 rounded-xl p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]";
-        el.innerHTML = `
-            <div class="w-8 h-8 bg-[#B2FF59] border-[2px] border-black dark:border-slate-500 rounded-full shrink-0 flex items-center justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="3"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            </div>
-            <span class="font-black uppercase tracking-tighter truncate text-sm dark:text-white"></span>
-        `;
-        el.querySelector('span').textContent = data.username || t('common.unknown');
-        list.appendChild(el);
-    });
+        // Discard if a newer render has been triggered
+        if (seq !== getSeq()) return;
+
+        const friendDocs = results
+            .filter(r => r.status === 'fulfilled')
+            .map(r => r.value);
+
+        if (friendDocs.length === 0) {
+            if (noMsg) noMsg.classList.remove('hidden');
+            return;
+        }
+
+        friendDocs.forEach(friendSnap => {
+            if (!friendSnap.exists()) return;
+            const data = friendSnap.data();
+            const el = document.createElement('div');
+            el.className = "flex items-center gap-3 bg-gray-100 dark:bg-slate-700 border-[3px] border-black dark:border-slate-600 rounded-xl p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]";
+            el.innerHTML = `
+                <div class="w-8 h-8 bg-[#B2FF59] border-[2px] border-black dark:border-slate-500 rounded-full shrink-0 flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="black" viewBox="0 0 24 24" stroke-width="3"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <span class="font-black uppercase tracking-tighter truncate text-sm dark:text-white"></span>
+            `;
+            el.querySelector('span').textContent = data.username || t('common.unknown');
+            list.appendChild(el);
+        });
+    } catch (err) {
+        if (noMsg) noMsg.classList.remove('hidden');
+    }
 }
 
 document.addEventListener('turbo:frame-load', (e) => {
