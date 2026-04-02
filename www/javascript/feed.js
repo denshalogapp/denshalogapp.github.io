@@ -1,5 +1,5 @@
 import { db } from './firebase.js';
-import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, where, orderBy, increment, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, getDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, where, orderBy, increment } from 'firebase/firestore';
 import { startCamera, stopCamera } from './stamp_camera.js';
 import { CURRENT_USER_ID, CURRENT_USERNAME, IS_ANONYMOUS } from './user.js';
 import { showAuthScreen } from './auth.js';
@@ -19,6 +19,22 @@ let outgoingFriendRequestIds = new Set();
 let currentUserUnsubscribe = null;
 let outgoingFriendRequestsUnsubscribe = null;
 let currentDetailPostData = null;
+
+// Maps legacy English tag values (stored in old posts) to i18n keys.
+const TAG_LEGACY_MAP = {
+    'New Stamp Collected': 'stamp',
+    'New Train Model': 'model',
+    'New Station Visited': 'station'
+};
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 export async function initFeedFrame() {
     if (!CURRENT_USER_ID) return;
@@ -57,6 +73,7 @@ export async function initFeedFrame() {
         );
         outgoingFriendRequestsUnsubscribe = onSnapshot(outgoingRequestsQuery, (snapshot) => {
             outgoingFriendRequestIds = new Set(snapshot.docs.map((requestDoc) => requestDoc.data().to));
+            renderFeed();
             rerenderCurrentDetailPost();
         }, (error) => {
             console.error(error);
@@ -172,10 +189,31 @@ function createPostElement(id, data, isDetail = false) {
 
     const tagsHtml = [];
     if (data.tag) {
-        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${data.tag}</span>`);
+        const tagKey = TAG_LEGACY_MAP[data.tag] || data.tag;
+        const tagLabel = t(`post.tags.${tagKey}`);
+        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${escapeHtml(tagLabel)}</span>`);
     }
-    if (data.stationName) {
-        tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${data.stationName}</span>`);
+    if (data.stationId || data.stationName) {
+        const lang = getLanguage();
+        let stationLabel = data.stationName;
+        // stationId is primaryStation.id from the feed station search; resolve to current locale.
+        if (data.stationId && window.allStations) {
+            if (!window.stationById) {
+                window.stationById = {};
+                window.allStations.forEach(station => {
+                    if (station && station.id != null) {
+                        window.stationById[String(station.id)] = station;
+                    }
+                });
+            }
+            const s = window.stationById[String(data.stationId)];
+            if (s) {
+                stationLabel = lang === 'ja' ? (s.station_name_jp || s.station_name_en) : (s.station_name_en || s.station_name_jp);
+            }
+        }
+        if (stationLabel) {
+            tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${escapeHtml(stationLabel)}</span>`);
+        }
     }
     const tagContainer = tagsHtml.length ? `<div class="flex flex-wrap gap-2 mt-4">${tagsHtml.join('')}</div>` : '';
 
@@ -229,11 +267,18 @@ function openCreatePost() {
     const retakeBtn = document.getElementById('retake-feed-btn');
     const caption = document.getElementById('post-caption-input');
     const tag = document.getElementById('post-tag-input');
+    const tagDisplay = document.getElementById('post-tag-display');
     const searchInput = document.getElementById('post-station-search-input');
     const hiddenId = document.getElementById('post-station-id-hidden');
 
     caption.value = '';
     tag.value = '';
+    
+    if (tagDisplay) {
+        tagDisplay.setAttribute('data-i18n', 'post.tags.none');
+        tagDisplay.innerText = t('post.tags.none');
+    }
+
     if (searchInput) searchInput.value = '';
     if (hiddenId) hiddenId.value = '';
     pendingPostImage = null;
@@ -342,6 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitCommentBtn = document.getElementById('submit-comment-btn');
 
     initFeedStationSearch();
+    initCustomTagSelect();
 
     if (closePostBtn) {
         closePostBtn.onclick = () => {
@@ -564,7 +610,7 @@ function showDetailFriendRequestMessage(message, tone = 'success') {
 }
 
 function showPostFriendRequestMessage(button, message, tone = 'success') {
-    const postCard = button.closest('.bg-white, .dark\\:bg-slate-800');
+    const postCard = button.closest('.rounded-\[32px\]');
     const messageEl = postCard?.querySelector('.post-friend-request-message');
     if (!messageEl || !message) return;
 
@@ -654,4 +700,53 @@ function resizeCanvasImage(canvas, maxSize) {
         return finalCanvas;
     }
     return canvas;
+}
+
+function initCustomTagSelect() {
+    const trigger = document.getElementById('post-tag-trigger');
+    const optionsContainer = document.getElementById('post-tag-options');
+    const hiddenInput = document.getElementById('post-tag-input');
+    const display = document.getElementById('post-tag-display');
+    const arrow = trigger?.querySelector('svg');
+
+    if (!trigger || !optionsContainer) return;
+
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = optionsContainer.classList.contains('hidden');
+        if (isHidden) {
+            optionsContainer.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+        } else {
+            optionsContainer.classList.add('hidden');
+            if (arrow) arrow.classList.remove('rotate-180');
+        }
+    });
+
+    const options = optionsContainer.querySelectorAll('.tag-option');
+    options.forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            e.stopPropagation();
+            hiddenInput.value = opt.getAttribute('data-value');
+            
+            const i18nKey = opt.getAttribute('data-i18n');
+            if (i18nKey) {
+                display.setAttribute('data-i18n', i18nKey);
+                display.innerText = t(i18nKey);
+            } else {
+                display.removeAttribute('data-i18n');
+                display.innerText = opt.innerText;
+            }
+            
+            optionsContainer.classList.add('hidden');
+            if (arrow) arrow.classList.remove('rotate-180');
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!trigger.contains(e.target) && !optionsContainer.contains(e.target)) {
+            optionsContainer.classList.add('hidden');
+            if (arrow) arrow.classList.remove('rotate-180');
+        }
+    });
 }

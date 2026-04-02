@@ -46,7 +46,7 @@ export function showAuthScreen() {
 }
 
 export function initAuth() {
-    // Initialize the language selector buttons for the auth screen
+    
     initAuthLanguageSelector();
 
     const authContainer = document.getElementById('auth-container');
@@ -60,6 +60,12 @@ export function initAuth() {
     const authGoogleBtn = document.getElementById('auth-google-btn');
     const authAnonBtn = document.getElementById('auth-anon-btn');
     const errorMsg = document.getElementById('auth-error-message');
+
+    if (authUsername) {
+        authUsername.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+        });
+    }
 
     if (authCloseBtn) {
         authCloseBtn.onclick = () => {
@@ -136,6 +142,7 @@ export function initAuth() {
                             errorMsg.innerText = "An account with this email already exists. Please log in with your original method.";
                             errorMsg.classList.remove('hidden');
                         }
+                        window.dispatchEvent(new CustomEvent('authResolved'));
                         return;
                     }
 
@@ -151,6 +158,7 @@ export function initAuth() {
                                 errorMsg.innerText = "This username is already taken. Please try another one.";
                                 errorMsg.classList.remove('hidden');
                             }
+                            window.dispatchEvent(new CustomEvent('authResolved'));
                             return;
                         }
 
@@ -200,15 +208,15 @@ export function initAuth() {
                         if(titleEl) titleEl.innerText = "Complete Profile";
                         
                         if(authSubmitBtn) authSubmitBtn.innerText = "Save Username";
-
+window.dispatchEvent(new CustomEvent('authResolved'));
                         authForm.onsubmit = async (e) => {
                             e.preventDefault();
                             if(errorMsg) errorMsg.classList.add('hidden');
                             
                             const chosenName = authUsername.value.trim();
-                            if (!chosenName) {
+                            if (!chosenName || chosenName.length < 6) {
                                 if(errorMsg) {
-                                    errorMsg.innerText = "Please enter a valid username to continue.";
+                                    errorMsg.innerText = "Username must be at least 6 characters long.";
                                     errorMsg.classList.remove('hidden');
                                 }
                                 return;
@@ -265,6 +273,7 @@ export function initAuth() {
             if(authIdentifier) authIdentifier.placeholder = "Email or Username";
             if(authSubmitBtn) authSubmitBtn.innerText = "Log In";
             if(authToggleMode) authToggleMode.innerText = "Need an account? Sign Up";
+            window.dispatchEvent(new CustomEvent('authResolved'));
         }
     });
 
@@ -306,9 +315,10 @@ export function initAuth() {
 
         try {
             if (isSignUpMode) {
+                if (username.length < 6) throw new Error("Username must be at least 6 characters long.");
+                
                 let currentEmail = identifier;
                 if (!currentEmail.includes('@')) throw new Error("Please enter a valid email address for signup.");
-
                 const emailQuery = query(collection(db, 'users'), where("email", "==", currentEmail));
                 const emailSnap = await getDocs(emailQuery);
                 if (!emailSnap.empty) throw new Error("An account with this email already exists.");
@@ -345,10 +355,18 @@ export function initAuth() {
     authGoogleBtn.onclick = async () => {
         errorMsg.classList.add('hidden');
         
-        if (isSignUpMode && !authUsername.value.trim()) {
-            errorMsg.innerText = "Please enter a username first to sign up with Google.";
-            errorMsg.classList.remove('hidden');
-            return;
+        if (isSignUpMode) {
+            const currentUname = authUsername.value.trim();
+            if (!currentUname) {
+                errorMsg.innerText = "Please enter a username first to sign up with Google.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            if (currentUname.length < 6) {
+                errorMsg.innerText = "Username must be at least 6 characters long.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
         }
 
         try {

@@ -27,6 +27,8 @@ export const translations = {
             friendsList: "Friends List",
             addFriend: "Add",
             requestPending: "Pending",
+            yourFriends: "Friends",
+            noFriends: "No friends yet",
             requests: "Requests",
             noRequests: "No pending requests",
             searchPlaceholder: "Add by username",
@@ -55,7 +57,9 @@ export const translations = {
             searching: "Searching..."
         },
         map: {
-            fetchingData: "Fetching Station Data"
+            fetchingData: "Fetching Station Data",
+            markAsVisited: "Mark as Visited?",
+            visited: "Visited"
         },
         camera: {
             newStamp: "New Stamp",
@@ -151,6 +155,8 @@ export const translations = {
             friendsList: "フレンドリスト",
             addFriend: "追加",
             requestPending: "送信済み",
+            yourFriends: "フレンド",
+            noFriends: "フレンドがいません",
             requests: "リクエスト",
             noRequests: "保留中のリクエストはありません",
             searchPlaceholder: "ユーザー名で追加",
@@ -179,7 +185,9 @@ export const translations = {
             searching: "検索中..."
         },
         map: {
-            fetchingData: "駅データを取得中"
+            fetchingData: "駅データを取得中",
+            markAsVisited: "訪問済みにする？",
+            visited: "訪問済み"
         },
         camera: {
             newStamp: "新しいスタンプ",
@@ -233,7 +241,7 @@ export const translations = {
             unmarkMsg: "この駅の訪問済みマークを解除してもよろしいですか？"
         },
         feed: {
-            title: "フィード",
+            title: "ソーシャル",
             all: "すべて",
             friends: "フレンド",
             addPost: "+ 投稿",

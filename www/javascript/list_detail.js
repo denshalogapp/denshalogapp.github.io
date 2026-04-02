@@ -15,8 +15,10 @@ export function getCurrentLineId() {
 }
 
 export async function showLineDetail(lineId) {
+    if (!lineId) return;
     currentLineId = lineId;
     const line = state.localLines[lineId];
+    if (!line) return;
     const stations = state.localStations.filter(s => String(s.line_id) === String(lineId));
     selectors.detailContainer.classList.remove('hidden');
 
