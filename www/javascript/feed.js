@@ -15,6 +15,22 @@ let currentFeedFilter = 'all';
 let latestPosts = [];
 let currentUserFriends = [];
 
+// Maps legacy English tag values (stored in old posts) to i18n keys.
+const TAG_LEGACY_MAP = {
+    'New Stamp Collected': 'stamp',
+    'New Train Model': 'model',
+    'New Station Visited': 'station'
+};
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 export async function initFeedFrame() {
     if (!CURRENT_USER_ID) return;
 
@@ -140,10 +156,31 @@ function createPostElement(id, data, isDetail = false) {
 
     const tagsHtml = [];
     if (data.tag) {
-        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${data.tag}</span>`);
+        const tagKey = TAG_LEGACY_MAP[data.tag] || data.tag;
+        const tagLabel = t(`post.tags.${tagKey}`);
+        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${escapeHtml(tagLabel)}</span>`);
     }
-    if (data.stationName) {
-        tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${data.stationName}</span>`);
+    if (data.stationId || data.stationName) {
+        const lang = getLanguage();
+        let stationLabel = data.stationName;
+        // stationId is primaryStation.id from the feed station search; resolve to current locale.
+        if (data.stationId && window.allStations) {
+            if (!window.stationById) {
+                window.stationById = {};
+                window.allStations.forEach(station => {
+                    if (station && station.id != null) {
+                        window.stationById[String(station.id)] = station;
+                    }
+                });
+            }
+            const s = window.stationById[String(data.stationId)];
+            if (s) {
+                stationLabel = lang === 'ja' ? (s.station_name_jp || s.station_name_en) : (s.station_name_en || s.station_name_jp);
+            }
+        }
+        if (stationLabel) {
+            tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${escapeHtml(stationLabel)}</span>`);
+        }
     }
     const tagContainer = tagsHtml.length ? `<div class="flex flex-wrap gap-2 mt-4">${tagsHtml.join('')}</div>` : '';
 
