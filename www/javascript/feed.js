@@ -138,12 +138,31 @@ function createPostElement(id, data, isDetail = false) {
     const isOwner = data.userId === CURRENT_USER_ID;
     const deleteBtnHtml = isOwner ? `<button class="delete-post-btn w-10 h-10 bg-[#FF5252] border-[3px] border-black dark:border-slate-600 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${id}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>` : '';
 
+    // Legacy posts stored the full English label as the tag value; map them to keys.
+    const TAG_LEGACY_MAP = {
+        'New Stamp Collected': 'stamp',
+        'New Train Model': 'model',
+        'New Station Visited': 'station'
+    };
+
     const tagsHtml = [];
     if (data.tag) {
-        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${data.tag}</span>`);
+        const tagKey = TAG_LEGACY_MAP[data.tag] || data.tag;
+        const tagLabel = t(`post.tags.${tagKey}`);
+        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${tagLabel}</span>`);
     }
-    if (data.stationName) {
-        tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${data.stationName}</span>`);
+    if (data.stationId || data.stationName) {
+        const lang = getLanguage();
+        let stationLabel = data.stationName;
+        if (data.stationId && window.allStations) {
+            const s = window.allStations.find(x => String(x.id) === String(data.stationId));
+            if (s) {
+                stationLabel = lang === 'ja' ? (s.station_name_jp || s.station_name_en) : (s.station_name_en || s.station_name_jp);
+            }
+        }
+        if (stationLabel) {
+            tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${stationLabel}</span>`);
+        }
     }
     const tagContainer = tagsHtml.length ? `<div class="flex flex-wrap gap-2 mt-4">${tagsHtml.join('')}</div>` : '';
 
