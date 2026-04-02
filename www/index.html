@@ -38,8 +38,10 @@
             
             <input type="text" id="auth-identifier" data-i18n="auth.identifier" placeholder="Email or Username" class="w-full bg-gray-100 border-[4px] border-black rounded-xl px-4 py-3 text-sm font-black uppercase placeholder-gray-400 focus:outline-none focus:bg-white transition-colors" required />
             
-            <input type="password" id="auth-password" data-i18n="auth.password" placeholder="Password" class="w-full bg-gray-100 border-[4px] border-black rounded-xl px-4 py-3 text-sm font-black uppercase placeholder-gray-400 focus:outline-none focus:bg-white transition-colors" required />
-            
+<div class="w-full flex flex-col gap-1">
+                <input type="password" id="auth-password" data-i18n="auth.password" placeholder="Password" class="w-full bg-gray-100 border-[4px] border-black rounded-xl px-4 py-3 text-sm font-black uppercase placeholder-gray-400 focus:outline-none focus:bg-white transition-colors" required />
+                <button type="button" id="auth-forgot-password" data-i18n="auth.forgotPassword" class="text-[10px] font-black text-gray-500 hover:text-black uppercase tracking-widest text-right w-full mt-1 transition-colors">Forgot Password?</button>
+            </div>            
             <button type="submit" id="auth-submit-btn" data-i18n="auth.login" class="w-full bg-[#B2FF59] border-[4px] border-black rounded-xl py-4 text-black font-black text-xl uppercase tracking-tighter shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all mt-2">
                 Log In
             </button>
@@ -542,12 +544,19 @@
                 </div>
                 <div class="flex flex-col gap-2 w-full">
                     <label data-i18n="post.tagOptional" class="text-xs font-black uppercase tracking-widest dark:text-gray-300">Tag (Optional)</label>
-                    <select id="post-tag-input" class="w-full bg-gray-100 dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 rounded-2xl p-4 text-sm font-black uppercase dark:text-white focus:outline-none transition-colors appearance-none">
-                        <option data-i18n="post.tags.none" value="">No Tag</option>
-                        <option data-i18n="post.tags.stamp" value="New Stamp Collected">New Stamp Collected</option>
-                        <option data-i18n="post.tags.model" value="New Train Model">New Train Model</option>
-                        <option data-i18n="post.tags.station" value="New Station Visited">New Station Visited</option>
-                    </select>
+                    <div class="relative w-full" id="post-tag-custom-select">
+                        <input type="hidden" id="post-tag-input" value="">
+                        <div id="post-tag-trigger" class="w-full bg-gray-100 dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 rounded-2xl p-4 text-sm font-black uppercase dark:text-white cursor-pointer flex justify-between items-center transition-colors">
+                            <span id="post-tag-display" data-i18n="post.tags.none">No Tag</span>
+                            <svg class="w-5 h-5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div id="post-tag-options" class="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 rounded-[20px] shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hidden z-50 overflow-hidden flex flex-col">
+                            <div class="tag-option px-5 py-4 text-sm font-black uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 border-b-[2px] border-black dark:border-slate-600 dark:text-white" data-value="" data-i18n="post.tags.none">No Tag</div>
+                            <div class="tag-option px-5 py-4 text-sm font-black uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 border-b-[2px] border-black dark:border-slate-600 dark:text-white" data-value="New Stamp Collected" data-i18n="post.tags.stamp">New Stamp Collected</div>
+                            <div class="tag-option px-5 py-4 text-sm font-black uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 border-b-[2px] border-black dark:border-slate-600 dark:text-white" data-value="New Train Model" data-i18n="post.tags.model">New Train Model</div>
+                            <div class="tag-option px-5 py-4 text-sm font-black uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700 dark:text-white last:border-b-0" data-value="New Station Visited" data-i18n="post.tags.station">New Station Visited</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex flex-col gap-2 w-full">
                     <label data-i18n="post.stationOptional" class="text-xs font-black uppercase tracking-widest dark:text-gray-300">Station (Optional)</label>

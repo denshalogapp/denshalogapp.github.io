@@ -6,6 +6,7 @@ import { renderVisibleMarkers, updateUserMarker } from './map_markers.js';
 import { toggleStation } from './user.js';
 import { idbSet, idbGet } from './idb.js';
 import { playReturnSound } from './audio.js';
+import { t, getLanguage } from './i18n.js';
 
 let map;
 let allStations = [];
@@ -18,6 +19,19 @@ let currentPosition = null;
 window.filterToLine = function(lineId) {
     activeLineFilter = String(lineId);
     window.renderVisibleMarkers();
+
+    const pill = document.getElementById('active-filter-pill');
+    const colorEl = document.getElementById('active-filter-color');
+    const nameEl = document.getElementById('active-filter-name');
+
+    if (pill && lineColors[lineId]) {
+        const line = lineColors[lineId];
+        const lang = getLanguage();
+        
+        nameEl.innerText = lang === 'ja' ? (line.name_jp || line.name_en) : (line.name_en || line.name_jp);
+        colorEl.style.backgroundColor = line.color || '#000000';
+        pill.classList.remove('hidden');
+    }
 };
 
 window.clearLineFilter = function() {
@@ -47,9 +61,9 @@ window.initMap = async function() {
         let lines = await idbGet('lineData');
         let joins = await idbGet('joinData');
 
-        // Force re-fetch if cached line data is missing Japanese names (stale cache from old bug
-        // where syncLineData used data.name_jp instead of data.line_name_jp).
-        // TODO: remove this guard after all clients have refreshed stale caches (post-deploy).
+        
+        
+        
         const hasJapaneseLineNames = lines && Object.values(lines).some(l =>
             l.name_jp && /[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff]/.test(l.name_jp)
         );
@@ -110,11 +124,7 @@ window.initMap = async function() {
     } catch (error) {
         console.error(error);
     } finally {
-        const overlay = document.getElementById('app-loading-overlay');
-        if (overlay) {
-            overlay.classList.add('opacity-0', 'pointer-events-none');
-            setTimeout(() => overlay.remove(), 500); 
-        }
+        window.dispatchEvent(new CustomEvent('mapInitialized'));
     }
 
     const overlay = document.getElementById('app-loading-overlay');
@@ -219,7 +229,7 @@ export function showTooltip(latLng, data, type) {
             if (visited) {
                 statusContainer.innerHTML = `
                     <div class="flex items-center justify-center gap-2">
-                        <span class="bg-[#B2FF59] border-[3px] border-black px-6 py-2 rounded-2xl text-xs font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">Visited</span>
+                        <span data-i18n="map.visited" class="bg-[#B2FF59] border-[3px] border-black px-6 py-2 rounded-2xl text-xs font-black uppercase text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">${t("map.visited")}</span>
                         <button id="unmark-station-btn" data-station-id="${data.stationId}" class="w-9 h-9 bg-[#FF5252] border-[3px] border-black rounded-full flex items-center justify-center text-white font-black hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -227,8 +237,8 @@ export function showTooltip(latLng, data, type) {
                 `;
             } else {
                 statusContainer.innerHTML = `
-                    <button id="mark-visited-btn" data-station-id="${data.stationId}" class="bg-[#40C4FF] border-[3px] border-black px-6 py-2 rounded-2xl text-xs font-black uppercase text-black hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
-                        Mark as Visited?
+                    <button id="mark-visited-btn" data-i18n="map.markAsVisited" data-station-id="${data.stationId}" class="bg-[#40C4FF] border-[3px] border-black px-6 py-2 rounded-2xl text-xs font-black uppercase text-black hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+                        ${t("map.markAsVisited")}
                     </button>
                 `;
             }
@@ -331,6 +341,12 @@ window.hideTooltip = hideTooltip;
 document.addEventListener('DOMContentLoaded', () => {
     const cancelUnmarkBtn = document.getElementById('cancel-unmark-btn');
     const confirmUnmarkBtn = document.getElementById('confirm-unmark-btn');
+    const clearFilterBtn = document.getElementById('clear-filter-btn');
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', () => {
+            window.clearLineFilter();
+        });
+    }
     
     if (cancelUnmarkBtn && confirmUnmarkBtn) {
         cancelUnmarkBtn.addEventListener('click', () => {

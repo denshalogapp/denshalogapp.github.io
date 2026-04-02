@@ -18,7 +18,8 @@ export const translations = {
             needAccount: "Need an account? Sign Up",
             username: "Username (For Sign Up)",
             identifier: "Email or Username",
-            password: "Password"
+            password: "Password",
+            forgotPassword: "Forgot Password?"
         },
         profile: {
             title: "Profile",
@@ -26,6 +27,8 @@ export const translations = {
             stamps: "Stamps",
             friendsList: "Friends List",
             addFriend: "Add",
+            yourFriends: "Friends",
+            noFriends: "No friends yet",
             requests: "Requests",
             noRequests: "No pending requests",
             searchPlaceholder: "Add by username",
@@ -53,7 +56,9 @@ export const translations = {
             searching: "Searching..."
         },
         map: {
-            fetchingData: "Fetching Station Data"
+            fetchingData: "Fetching Station Data",
+            markAsVisited: "Mark as Visited?",
+            visited: "Visited"
         },
         camera: {
             newStamp: "New Stamp",
@@ -140,7 +145,8 @@ export const translations = {
             needAccount: "アカウントが必要ですか？ 登録",
             username: "ユーザー名 (登録用)",
             identifier: "メールアドレスまたはユーザー名",
-            password: "パスワード"
+            password: "パスワード",
+            forgotPassword: "パスワードをお忘れですか？"
         },
         profile: {
             title: "プロフィール",
@@ -148,6 +154,8 @@ export const translations = {
             stamps: "スタンプ",
             friendsList: "フレンドリスト",
             addFriend: "追加",
+            yourFriends: "フレンド",
+            noFriends: "フレンドがいません",
             requests: "リクエスト",
             noRequests: "保留中のリクエストはありません",
             searchPlaceholder: "ユーザー名で追加",
@@ -175,7 +183,9 @@ export const translations = {
             searching: "検索中..."
         },
         map: {
-            fetchingData: "駅データを取得中"
+            fetchingData: "駅データを取得中",
+            markAsVisited: "訪問済みにする？",
+            visited: "訪問済み"
         },
         camera: {
             newStamp: "新しいスタンプ",
@@ -229,7 +239,7 @@ export const translations = {
             unmarkMsg: "この駅の訪問済みマークを解除してもよろしいですか？"
         },
         feed: {
-            title: "フィード",
+            title: "ソーシャル",
             all: "すべて",
             friends: "フレンド",
             addPost: "+ 投稿",

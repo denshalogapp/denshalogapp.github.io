@@ -1,5 +1,6 @@
-import { db } from './firebase.js';
+import { db, storage } from './firebase.js';
 import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, orderBy, increment, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { startCamera, stopCamera } from './stamp_camera.js';
 import { CURRENT_USER_ID, CURRENT_USERNAME, IS_ANONYMOUS } from './user.js';
 import { showAuthScreen } from './auth.js';
@@ -8,12 +9,30 @@ import { applyTranslations, t, getLanguage } from './i18n.js';
 let postsUnsubscribe = null;
 let commentsUnsubscribe = null;
 let detailPostUnsubscribe = null;
+let userDocUnsubscribe = null;
 let pendingPostImage = null;
 let currentDetailPostId = null;
 
 let currentFeedFilter = 'all';
 let latestPosts = [];
 let currentUserFriends = [];
+let currentUserOutRequests = [];
+
+// Maps legacy English tag values (stored in old posts) to i18n keys.
+const TAG_LEGACY_MAP = {
+    'New Stamp Collected': 'stamp',
+    'New Train Model': 'model',
+    'New Station Visited': 'station'
+};
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 export async function initFeedFrame() {
     if (!CURRENT_USER_ID) return;
@@ -34,14 +53,18 @@ export async function initFeedFrame() {
         filterFriendsBtn.onclick = () => setFeedFilter('friends');
     }
 
-    if (!IS_ANONYMOUS) {
-        try {
-            const userDoc = await getDoc(doc(db, 'users', CURRENT_USER_ID));
-            if (userDoc.exists()) {
-                currentUserFriends = userDoc.data().friends || [];
-            }
-        } catch (e) {
-            console.error(e);
+   if (!IS_ANONYMOUS) {
+        if (!userDocUnsubscribe) {
+            userDocUnsubscribe = onSnapshot(doc(db, 'users', CURRENT_USER_ID), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    currentUserFriends = data.friends || [];
+                    currentUserOutRequests = data.out_requests || [];
+                    if (latestPosts.length > 0) {
+                        renderFeed();
+                    }
+                }
+            }, (e) => console.error(e));
         }
     }
 
@@ -109,6 +132,16 @@ function renderFeed() {
 }
 
 function handleFeedClick(e) {
+    const friendBtn = e.target.closest('.friend-btn');
+    if (friendBtn) {
+        if (IS_ANONYMOUS) {
+            showAuthScreen();
+            return;
+        }
+        toggleFriendRequest(friendBtn.dataset.id, friendBtn.dataset.action);
+        return;
+    }
+
     const yeahBtn = e.target.closest('.yeah-btn');
     if (yeahBtn) {
         if (IS_ANONYMOUS) {
@@ -138,12 +171,47 @@ function createPostElement(id, data, isDetail = false) {
     const isOwner = data.userId === CURRENT_USER_ID;
     const deleteBtnHtml = isOwner ? `<button class="delete-post-btn w-10 h-10 bg-[#FF5252] border-[3px] border-black dark:border-slate-600 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${id}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>` : '';
 
+    let friendBtnHtml = '';
+    if (!isOwner && !IS_ANONYMOUS) {
+        const isFriend = currentUserFriends.includes(data.userId);
+        const hasRequested = currentUserOutRequests.includes(data.userId);
+
+        if (!isFriend) {
+            if (hasRequested) {
+                friendBtnHtml = `<button class="friend-btn w-10 h-10 bg-gray-400 dark:bg-slate-600 border-[3px] border-black dark:border-slate-500 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${data.userId}" data-action="cancel"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12h-6m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg></button>`;
+            } else {
+                friendBtnHtml = `<button class="friend-btn w-10 h-10 bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${data.userId}" data-action="add"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg></button>`;
+            }
+        }
+    }
+
     const tagsHtml = [];
     if (data.tag) {
-        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${data.tag}</span>`);
+        const tagKey = TAG_LEGACY_MAP[data.tag] || data.tag;
+        const tagLabel = t(`post.tags.${tagKey}`);
+        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${escapeHtml(tagLabel)}</span>`);
     }
-    if (data.stationName) {
-        tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${data.stationName}</span>`);
+    if (data.stationId || data.stationName) {
+        const lang = getLanguage();
+        let stationLabel = data.stationName;
+        // stationId is primaryStation.id from the feed station search; resolve to current locale.
+        if (data.stationId && window.allStations) {
+            if (!window.stationById) {
+                window.stationById = {};
+                window.allStations.forEach(station => {
+                    if (station && station.id != null) {
+                        window.stationById[String(station.id)] = station;
+                    }
+                });
+            }
+            const s = window.stationById[String(data.stationId)];
+            if (s) {
+                stationLabel = lang === 'ja' ? (s.station_name_jp || s.station_name_en) : (s.station_name_en || s.station_name_jp);
+            }
+        }
+        if (stationLabel) {
+            tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${escapeHtml(stationLabel)}</span>`);
+        }
     }
     const tagContainer = tagsHtml.length ? `<div class="flex flex-wrap gap-2 mt-4">${tagsHtml.join('')}</div>` : '';
 
@@ -153,6 +221,7 @@ function createPostElement(id, data, isDetail = false) {
     const yeahText = hasYeahed ? 'text-black' : 'text-black dark:text-white';
 
     const triggerClass = isDetail ? '' : 'post-detail-trigger cursor-pointer';
+    const displayImage = data.imageUrl || data.image;
 
     div.innerHTML = `
         <div class="flex items-center justify-between mb-5">
@@ -160,9 +229,12 @@ function createPostElement(id, data, isDetail = false) {
                 <h3 class="font-black text-2xl uppercase tracking-tighter dark:text-white">${data.username}</h3>
                 <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${new Date(data.timestamp).toLocaleString()}</span>
             </div>
-            ${deleteBtnHtml}
+            <div class="flex gap-2">
+                ${friendBtnHtml}
+                ${deleteBtnHtml}
+            </div>
         </div>
-        ${data.image ? `<div class="w-full aspect-square bg-gray-200 dark:bg-slate-700 mb-5 border-[4px] border-black dark:border-slate-600 overflow-hidden rounded-2xl ${triggerClass}" data-id="${id}"><img src="${data.image}" class="w-full h-full object-cover"></div>` : ''}
+        ${displayImage ? `<div class="w-full aspect-square bg-gray-200 dark:bg-slate-700 mb-5 border-[4px] border-black dark:border-slate-600 overflow-hidden rounded-2xl ${triggerClass}" data-id="${id}"><img src="${displayImage}" loading="lazy" class="w-full h-full object-cover"></div>` : ''}
         <p class="text-base font-bold dark:text-gray-200 ${triggerClass}" data-id="${id}">${data.caption || ''}</p>
         ${tagContainer}
         <div class="flex gap-4 mt-6">
@@ -193,11 +265,18 @@ function openCreatePost() {
     const retakeBtn = document.getElementById('retake-feed-btn');
     const caption = document.getElementById('post-caption-input');
     const tag = document.getElementById('post-tag-input');
+    const tagDisplay = document.getElementById('post-tag-display');
     const searchInput = document.getElementById('post-station-search-input');
     const hiddenId = document.getElementById('post-station-id-hidden');
 
     caption.value = '';
     tag.value = '';
+    
+    if (tagDisplay) {
+        tagDisplay.setAttribute('data-i18n', 'post.tags.none');
+        tagDisplay.innerText = t('post.tags.none');
+    }
+
     if (searchInput) searchInput.value = '';
     if (hiddenId) hiddenId.value = '';
     pendingPostImage = null;
@@ -306,6 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitCommentBtn = document.getElementById('submit-comment-btn');
 
     initFeedStationSearch();
+    initCustomTagSelect();
 
     if (closePostBtn) {
         closePostBtn.onclick = () => {
@@ -386,21 +466,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!pendingPostImage && !caption) return;
 
-            const postData = {
-                userId: CURRENT_USER_ID,
-                username: CURRENT_USERNAME,
-                image: pendingPostImage || '',
-                caption: caption,
-                tag: tag,
-                stationId: stationId,
-                stationName: stationName,
-                timestamp: Date.now(),
-                yeahs: [],
-                commentsCount: 0
-            };
-
             submitBtn.disabled = true;
             try {
+                let finalImageUrl = '';
+
+                if (pendingPostImage) {
+                    const imageRef = ref(storage, `posts/${CURRENT_USER_ID}_${Date.now()}.jpg`);
+                    await uploadString(imageRef, pendingPostImage, 'data_url');
+                    finalImageUrl = await getDownloadURL(imageRef);
+                }
+
+                const postData = {
+                    userId: CURRENT_USER_ID,
+                    username: CURRENT_USERNAME,
+                    imageUrl: finalImageUrl,
+                    caption: caption,
+                    tag: tag,
+                    stationId: stationId,
+                    stationName: stationName,
+                    timestamp: Date.now(),
+                    yeahs: [],
+                    commentsCount: 0
+                };
+
                 await addDoc(collection(db, 'posts'), postData);
                 document.getElementById('create-post-container').classList.add('translate-y-full', 'pointer-events-none');
             } catch (err) {
@@ -550,4 +638,72 @@ function resizeCanvasImage(canvas, maxSize) {
         return finalCanvas;
     }
     return canvas;
+}
+
+function initCustomTagSelect() {
+    const trigger = document.getElementById('post-tag-trigger');
+    const optionsContainer = document.getElementById('post-tag-options');
+    const hiddenInput = document.getElementById('post-tag-input');
+    const display = document.getElementById('post-tag-display');
+    const arrow = trigger?.querySelector('svg');
+
+    if (!trigger || !optionsContainer) return;
+
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = optionsContainer.classList.contains('hidden');
+        if (isHidden) {
+            optionsContainer.classList.remove('hidden');
+            if (arrow) arrow.classList.add('rotate-180');
+        } else {
+            optionsContainer.classList.add('hidden');
+            if (arrow) arrow.classList.remove('rotate-180');
+        }
+    });
+
+    const options = optionsContainer.querySelectorAll('.tag-option');
+    options.forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            e.stopPropagation();
+            hiddenInput.value = opt.getAttribute('data-value');
+            
+            const i18nKey = opt.getAttribute('data-i18n');
+            if (i18nKey) {
+                display.setAttribute('data-i18n', i18nKey);
+                display.innerText = t(i18nKey);
+            } else {
+                display.removeAttribute('data-i18n');
+                display.innerText = opt.innerText;
+            }
+            
+            optionsContainer.classList.add('hidden');
+            if (arrow) arrow.classList.remove('rotate-180');
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!trigger.contains(e.target) && !optionsContainer.contains(e.target)) {
+            optionsContainer.classList.add('hidden');
+            if (arrow) arrow.classList.remove('rotate-180');
+        }
+    });
+}
+
+async function toggleFriendRequest(targetId, action) {
+    if (IS_ANONYMOUS || !targetId) return;
+
+    const currentUserRef = doc(db, 'users', CURRENT_USER_ID);
+    const targetUserRef = doc(db, 'users', targetId);
+
+    try {
+        if (action === 'add') {
+            await setDoc(currentUserRef, { out_requests: arrayUnion(targetId) }, { merge: true });
+            await setDoc(targetUserRef, { in_requests: arrayUnion(CURRENT_USER_ID) }, { merge: true });
+        } else if (action === 'cancel') {
+            await setDoc(currentUserRef, { out_requests: arrayRemove(targetId) }, { merge: true });
+            await setDoc(targetUserRef, { in_requests: arrayRemove(CURRENT_USER_ID) }, { merge: true });
+        }
+    } catch (e) {
+        console.error(e);
+    }
 }
