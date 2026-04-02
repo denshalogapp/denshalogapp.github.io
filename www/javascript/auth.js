@@ -2,7 +2,7 @@ import { auth, db, googleProvider } from './firebase.js';
 import { 
     onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
     signInAnonymously, linkWithCredential, linkWithPopup, EmailAuthProvider,
-    GoogleAuthProvider, signInWithCredential, signInWithPopup, deleteUser, signOut
+    GoogleAuthProvider, signInWithCredential, signInWithPopup, signInWithRedirect, deleteUser, signOut, sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { setCurrentUser, initProfileSync } from './user.js';
@@ -60,6 +60,15 @@ export function initAuth() {
     const authGoogleBtn = document.getElementById('auth-google-btn');
     const authAnonBtn = document.getElementById('auth-anon-btn');
     const errorMsg = document.getElementById('auth-error-message');
+    const authForgotBtn = document.getElementById('auth-forgot-password');
+
+    // Strip non-alphanumeric characters instantly as the user types
+
+    if (authUsername) {
+        authUsername.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+        });
+    }
 
     if (authCloseBtn) {
         authCloseBtn.onclick = () => {
@@ -208,9 +217,9 @@ window.dispatchEvent(new CustomEvent('authResolved'));
                             if(errorMsg) errorMsg.classList.add('hidden');
                             
                             const chosenName = authUsername.value.trim();
-                            if (!chosenName) {
+                            if (!chosenName || chosenName.length < 6) {
                                 if(errorMsg) {
-                                    errorMsg.innerText = "Please enter a valid username to continue.";
+                                    errorMsg.innerText = "Username must be at least 6 characters long.";
                                     errorMsg.classList.remove('hidden');
                                 }
                                 return;
@@ -274,6 +283,7 @@ window.dispatchEvent(new CustomEvent('authResolved'));
     authToggleMode.onclick = () => {
         isSignUpMode = !isSignUpMode;
         if (isSignUpMode) {
+            if (authForgotBtn) authForgotBtn.classList.add('hidden');
             authUsername.classList.remove('hidden');
             authUsername.required = true;
             authIdentifier.placeholder = "Email Address";
@@ -285,6 +295,7 @@ window.dispatchEvent(new CustomEvent('authResolved'));
                 authToggleMode.innerText = "Already have an account? Log In";
             }
         } else {
+            if (authForgotBtn) authForgotBtn.classList.remove('hidden');
             authUsername.classList.add('hidden');
             authUsername.required = false;
             if (auth.currentUser && auth.currentUser.isAnonymous) {
@@ -309,9 +320,10 @@ window.dispatchEvent(new CustomEvent('authResolved'));
 
         try {
             if (isSignUpMode) {
+                if (username.length < 6) throw new Error("Username must be at least 6 characters long.");
+                
                 let currentEmail = identifier;
                 if (!currentEmail.includes('@')) throw new Error("Please enter a valid email address for signup.");
-
                 const emailQuery = query(collection(db, 'users'), where("email", "==", currentEmail));
                 const emailSnap = await getDocs(emailQuery);
                 if (!emailSnap.empty) throw new Error("An account with this email already exists.");
@@ -348,10 +360,18 @@ window.dispatchEvent(new CustomEvent('authResolved'));
     authGoogleBtn.onclick = async () => {
         errorMsg.classList.add('hidden');
         
-        if (isSignUpMode && !authUsername.value.trim()) {
-            errorMsg.innerText = "Please enter a username first to sign up with Google.";
-            errorMsg.classList.remove('hidden');
-            return;
+        if (isSignUpMode) {
+            const currentUname = authUsername.value.trim();
+            if (!currentUname) {
+                errorMsg.innerText = "Please enter a username first to sign up with Google.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            if (currentUname.length < 6) {
+                errorMsg.innerText = "Username must be at least 6 characters long.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
         }
 
         try {
@@ -403,6 +423,43 @@ window.dispatchEvent(new CustomEvent('authResolved'));
             errorMsg.classList.remove('hidden');
         }
     };
+
+    if (authForgotBtn) {
+        authForgotBtn.onclick = async () => {
+            errorMsg.classList.add('hidden');
+            const identifier = authIdentifier.value.trim();
+            
+            if (!identifier) {
+                errorMsg.innerText = "Please enter your email address in the field above to reset your password.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            
+            if (!identifier.includes('@')) {
+                errorMsg.innerText = "Please enter a valid email address to reset your password.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                await sendPasswordResetEmail(auth, identifier);
+                
+                // Temporarily change the text to show success without an alert popup
+                const originalText = authForgotBtn.innerText;
+                authForgotBtn.innerText = "Reset Email Sent!";
+                authForgotBtn.classList.add('text-green-500');
+                
+                setTimeout(() => {
+                    authForgotBtn.innerText = originalText;
+                    authForgotBtn.classList.remove('text-green-500');
+                }, 4000);
+                
+            } catch (err) {
+                errorMsg.innerText = err.message;
+                errorMsg.classList.remove('hidden');
+            }
+        };
+    }
 }
 
 export function initAuthLanguageSelector() {
