@@ -1,9 +1,10 @@
 import { db } from './firebase.js';
-import { collection, onSnapshot, doc, getDoc, setDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, orderBy, increment, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, where, orderBy, increment, serverTimestamp } from 'firebase/firestore';
 import { startCamera, stopCamera } from './stamp_camera.js';
 import { CURRENT_USER_ID, CURRENT_USERNAME, IS_ANONYMOUS } from './user.js';
 import { showAuthScreen } from './auth.js';
 import { applyTranslations, t, getLanguage } from './i18n.js';
+import { sendFriendRequestToUser } from './friend_requests.js';
 
 let postsUnsubscribe = null;
 let commentsUnsubscribe = null;
@@ -14,6 +15,10 @@ let currentDetailPostId = null;
 let currentFeedFilter = 'all';
 let latestPosts = [];
 let currentUserFriends = [];
+let outgoingFriendRequestIds = new Set();
+let currentUserUnsubscribe = null;
+let outgoingFriendRequestsUnsubscribe = null;
+let currentDetailPostData = null;
 
 export async function initFeedFrame() {
     if (!CURRENT_USER_ID) return;
@@ -34,15 +39,31 @@ export async function initFeedFrame() {
         filterFriendsBtn.onclick = () => setFeedFilter('friends');
     }
 
-    if (!IS_ANONYMOUS) {
-        try {
-            const userDoc = await getDoc(doc(db, 'users', CURRENT_USER_ID));
-            if (userDoc.exists()) {
-                currentUserFriends = userDoc.data().friends || [];
-            }
-        } catch (e) {
-            console.error(e);
-        }
+    if (!IS_ANONYMOUS && CURRENT_USER_ID) {
+        if (currentUserUnsubscribe) currentUserUnsubscribe();
+        currentUserUnsubscribe = onSnapshot(doc(db, 'users', CURRENT_USER_ID), (userDoc) => {
+            currentUserFriends = userDoc.exists() ? (userDoc.data().friends || []) : [];
+            renderFeed();
+            rerenderCurrentDetailPost();
+        }, (error) => {
+            console.error(error);
+        });
+
+        if (outgoingFriendRequestsUnsubscribe) outgoingFriendRequestsUnsubscribe();
+        const outgoingRequestsQuery = query(
+            collection(db, 'friend_requests'),
+            where('from', '==', CURRENT_USER_ID),
+            where('status', '==', 'pending')
+        );
+        outgoingFriendRequestsUnsubscribe = onSnapshot(outgoingRequestsQuery, (snapshot) => {
+            outgoingFriendRequestIds = new Set(snapshot.docs.map((requestDoc) => requestDoc.data().to));
+            rerenderCurrentDetailPost();
+        }, (error) => {
+            console.error(error);
+        });
+    } else {
+        currentUserFriends = [];
+        outgoingFriendRequestIds = new Set();
     }
 
     if (feedList && !postsUnsubscribe) {
@@ -109,6 +130,12 @@ function renderFeed() {
 }
 
 function handleFeedClick(e) {
+    const friendRequestBtn = e.target.closest('.send-friend-request-from-post-btn');
+    if (friendRequestBtn) {
+        handlePostFriendRequest(friendRequestBtn);
+        return;
+    }
+
     const yeahBtn = e.target.closest('.yeah-btn');
     if (yeahBtn) {
         if (IS_ANONYMOUS) {
@@ -136,7 +163,12 @@ function createPostElement(id, data, isDetail = false) {
     div.className = "bg-white dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-[32px] flex flex-col";
 
     const isOwner = data.userId === CURRENT_USER_ID;
+    const shouldShowFriendRequest = shouldRenderFriendRequestButton(data.userId);
+    const hasPendingFriendRequest = shouldShowFriendRequest && outgoingFriendRequestIds.has(data.userId);
     const deleteBtnHtml = isOwner ? `<button class="delete-post-btn w-10 h-10 bg-[#FF5252] border-[3px] border-black dark:border-slate-600 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${id}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>` : '';
+    const friendRequestBtnHtml = shouldShowFriendRequest
+        ? `<button class="send-friend-request-from-post-btn shrink-0 bg-[#B2FF59] border-[3px] border-black dark:border-slate-600 rounded-xl px-3 py-2 text-black font-black text-[10px] uppercase tracking-widest shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all ${hasPendingFriendRequest ? 'opacity-60 pointer-events-none' : 'active:translate-y-1 active:translate-x-1 active:shadow-none'}" data-user-id="${data.userId}" data-username="${data.username}" data-post-id="${id}">${hasPendingFriendRequest ? t('profile.requestPending') : t('profile.addFriend')}</button>`
+        : '';
 
     const tagsHtml = [];
     if (data.tag) {
@@ -156,9 +188,13 @@ function createPostElement(id, data, isDetail = false) {
 
     div.innerHTML = `
         <div class="flex items-center justify-between mb-5">
-            <div class="flex flex-col">
-                <h3 class="font-black text-2xl uppercase tracking-tighter dark:text-white">${data.username}</h3>
+            <div class="flex flex-col min-w-0 flex-1">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h3 class="font-black text-2xl uppercase tracking-tighter dark:text-white">${data.username}</h3>
+                    ${friendRequestBtnHtml}
+                </div>
                 <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${new Date(data.timestamp).toLocaleString()}</span>
+                <p class="post-friend-request-message mt-2 text-[10px] font-black uppercase tracking-widest hidden"></p>
             </div>
             ${deleteBtnHtml}
         </div>
@@ -463,6 +499,7 @@ function showPostPreview() {
 
 function openPostDetail(id) {
     currentDetailPostId = id;
+    currentDetailPostData = null;
     const cont = document.getElementById('post-detail-container');
     const content = document.getElementById('post-detail-content');
     const list = document.getElementById('post-comments-list');
@@ -477,19 +514,8 @@ function openPostDetail(id) {
             cont.classList.add('translate-x-full', 'pointer-events-none');
             return;
         }
-        content.innerHTML = '';
-        content.appendChild(createPostElement(docSnap.id, docSnap.data(), true));
-        const yeahBtn = content.querySelector('.yeah-btn');
-        if (yeahBtn) {
-            yeahBtn.onclick = () => toggleYeah(id, yeahBtn.classList.contains('bg-[#FF80AB]'));
-        }
-        const delBtn = content.querySelector('.delete-post-btn');
-        if (delBtn) {
-            delBtn.onclick = () => {
-                deletePost(id);
-                cont.classList.add('translate-x-full', 'pointer-events-none');
-            };
-        }
+        currentDetailPostData = docSnap.data();
+        renderDetailPost(id, currentDetailPostData);
     });
 
     if (commentsUnsubscribe) commentsUnsubscribe();
@@ -517,6 +543,84 @@ function openPostDetail(id) {
             cont.querySelector('.flex-1').scrollTop = cont.querySelector('.flex-1').scrollHeight;
         }, 50);
     });
+}
+
+function shouldRenderFriendRequestButton(userId) {
+    return Boolean(userId) && userId !== CURRENT_USER_ID && !currentUserFriends.includes(userId);
+}
+
+function rerenderCurrentDetailPost() {
+    if (!currentDetailPostId || !currentDetailPostData) return;
+    renderDetailPost(currentDetailPostId, currentDetailPostData);
+}
+
+function showDetailFriendRequestMessage(message, tone = 'success') {
+    const messageEl = document.querySelector('#post-detail-content .post-friend-request-message');
+    if (!messageEl || !message) return;
+
+    messageEl.classList.remove('hidden', 'text-[#B2FF59]', 'text-[#FF5252]', 'text-gray-500');
+    messageEl.classList.add(tone === 'error' ? 'text-[#FF5252]' : 'text-[#B2FF59]');
+    messageEl.textContent = message;
+}
+
+function showPostFriendRequestMessage(button, message, tone = 'success') {
+    const postCard = button.closest('.bg-white, .dark\\:bg-slate-800');
+    const messageEl = postCard?.querySelector('.post-friend-request-message');
+    if (!messageEl || !message) return;
+
+    messageEl.classList.remove('hidden', 'text-[#B2FF59]', 'text-[#FF5252]', 'text-gray-500');
+    messageEl.classList.add(tone === 'error' ? 'text-[#FF5252]' : 'text-[#B2FF59]');
+    messageEl.textContent = message;
+}
+
+async function handlePostFriendRequest(button) {
+    if (IS_ANONYMOUS) {
+        showAuthScreen();
+        return;
+    }
+
+    button.disabled = true;
+    try {
+        await sendFriendRequestToUser(button.dataset.userId, button.dataset.username);
+        outgoingFriendRequestIds = new Set([...outgoingFriendRequestIds, button.dataset.userId]);
+        renderFeed();
+        if (currentDetailPostId === button.dataset.postId && currentDetailPostData) {
+            renderDetailPost(currentDetailPostId, currentDetailPostData);
+            showDetailFriendRequestMessage(t('profile.requestSent'));
+            return;
+        }
+        showPostFriendRequestMessage(button, t('profile.requestSent'));
+    } catch (error) {
+        button.disabled = false;
+        showPostFriendRequestMessage(button, error.message || t('profile.errorRequestSent'), 'error');
+    }
+}
+
+function renderDetailPost(id, data) {
+    const cont = document.getElementById('post-detail-container');
+    const content = document.getElementById('post-detail-content');
+    if (!cont || !content) return;
+
+    content.innerHTML = '';
+    content.appendChild(createPostElement(id, data, true));
+
+    const yeahBtn = content.querySelector('.yeah-btn');
+    if (yeahBtn) {
+        yeahBtn.onclick = () => toggleYeah(id, yeahBtn.classList.contains('bg-[#FF80AB]'));
+    }
+
+    const delBtn = content.querySelector('.delete-post-btn');
+    if (delBtn) {
+        delBtn.onclick = () => {
+            deletePost(id);
+            cont.classList.add('translate-x-full', 'pointer-events-none');
+        };
+    }
+
+    const friendRequestBtn = content.querySelector('.send-friend-request-from-post-btn');
+    if (friendRequestBtn) {
+        friendRequestBtn.onclick = () => handlePostFriendRequest(friendRequestBtn);
+    }
 }
 
 window.deleteComment = async (postId, commentId) => {

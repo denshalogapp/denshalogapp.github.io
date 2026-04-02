@@ -26,6 +26,7 @@ export const translations = {
             stamps: "Stamps",
             friendsList: "Friends List",
             addFriend: "Add",
+            requestPending: "Pending",
             requests: "Requests",
             noRequests: "No pending requests",
             searchPlaceholder: "Add by username",
@@ -33,7 +34,8 @@ export const translations = {
             requestSent: "Request sent!",
             errorCannotAddSelf: "You cannot add yourself.",
             errorUserNotFound: "User not found.",
-            errorRequestSent: "Request already sent."
+            errorRequestSent: "Request already sent.",
+            errorAlreadyFriends: "You are already friends."
         },
         common: {
             cancel: "Cancel",
@@ -148,6 +150,7 @@ export const translations = {
             stamps: "スタンプ",
             friendsList: "フレンドリスト",
             addFriend: "追加",
+            requestPending: "送信済み",
             requests: "リクエスト",
             noRequests: "保留中のリクエストはありません",
             searchPlaceholder: "ユーザー名で追加",
@@ -155,7 +158,8 @@ export const translations = {
             requestSent: "リクエストを送信しました！",
             errorCannotAddSelf: "自分自身を追加することはできません。",
             errorUserNotFound: "ユーザーが見つかりません。",
-            errorRequestSent: "リクエストは既に送信されています。"
+            errorRequestSent: "リクエストは既に送信されています。",
+            errorAlreadyFriends: "すでにフレンドです。"
         },
         common: {
             cancel: "キャンセル",

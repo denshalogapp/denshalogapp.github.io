@@ -1,8 +1,9 @@
-import { auth, db } from './firebase.js';
-import { collection, query, where, getDocs, addDoc, onSnapshot, doc, updateDoc, deleteDoc, arrayUnion } from 'firebase/firestore';
+import { db } from './firebase.js';
+import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, arrayUnion } from 'firebase/firestore';
 import { showAuthScreen } from './auth.js';
 import { getVisitedStations, userStamps, CURRENT_USER_ID, CURRENT_USERNAME, IS_ANONYMOUS } from './user.js';
 import { applyTranslations, t } from './i18n.js';
+import { findUserByUsername, sendFriendRequestToUser } from './friend_requests.js';
 
 export function updateProfileCounts() {
     const stationsCount = document.getElementById('profile-stations-count');
@@ -72,33 +73,13 @@ export async function initProfileFrame() {
                     throw new Error(t('profile.errorCannotAddSelf'));
                 }
 
-                const usersRef = collection(db, 'users');
-                const q = query(usersRef, where("username", "==", targetUsername));
-                const snapshot = await getDocs(q);
+                const targetUser = await findUserByUsername(targetUsername);
 
-                if (snapshot.empty) {
+                if (!targetUser) {
                     throw new Error(t('profile.errorUserNotFound'));
                 }
 
-                const targetUser = snapshot.docs[0];
-                const targetUserId = targetUser.id;
-
-                const reqQuery = query(collection(db, 'friend_requests'), 
-                    where("from", "==", CURRENT_USER_ID), 
-                    where("to", "==", targetUserId)
-                );
-                const reqSnapshot = await getDocs(reqQuery);
-                if (!reqSnapshot.empty) {
-                    throw new Error(t('profile.errorRequestSent'));
-                }
-
-                await addDoc(collection(db, 'friend_requests'), {
-                    from: CURRENT_USER_ID,
-                    fromUsername: CURRENT_USERNAME,
-                    to: targetUserId,
-                    status: 'pending',
-                    timestamp: new Date()
-                });
+                await sendFriendRequestToUser(targetUser.id, targetUsername);
 
                 messageEl.classList.remove('text-gray-500');
                 messageEl.classList.add('text-[#B2FF59]');
