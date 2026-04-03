@@ -1,5 +1,5 @@
 import { syncStationData, syncLineData, syncJoinData } from './map_utils.js';
-import { db } from './firebase.js';
+import { db, auth } from './firebase.js';
 import { doc, getDoc } from 'firebase/firestore';
 import { renderPolylines, polylines } from './map_layers.js';
 import { renderVisibleMarkers, updateUserMarker } from './map_markers.js';
@@ -68,11 +68,23 @@ window.initMap = async function() {
             l.name_jp && /[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff]/.test(l.name_jp)
         );
         if (!stations || !lines || !joins || !hasJapaneseLineNames) {
-            const configSnap = await getDoc(doc(db, 'metadata', 'config'));
+            
+            // 1. Wait for Firebase Auth to confirm a valid user before fetching
+            await new Promise(resolve => {
+                if (auth.currentUser) return resolve();
+                const unsubscribe = auth.onAuthStateChanged(user => {
+                    if (user) {
+                        unsubscribe();
+                        resolve();
+                    }
+                });
+            });
+
+            // 2. Fetch data (removed the unused configSnap)
             [stations, lines, joins] = await Promise.all([
-                syncStationData(configSnap),
-                syncLineData(configSnap),
-                syncJoinData(configSnap)
+                syncStationData(),
+                syncLineData(),
+                syncJoinData()
             ]);
 
             await idbSet('stationData', stations);

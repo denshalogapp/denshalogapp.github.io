@@ -2,7 +2,7 @@ import { idbClear } from './idb.js';
 import { auth } from './firebase.js';
 import { signOut, onAuthStateChanged, deleteUser } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { SocialLogin } from '@capgo/capacitor-social-login';
 import { showAuthScreen } from './auth.js';
 import { updateUserSetting } from './user.js';
 import { applyTranslations, getLanguage, setLanguage, t } from './i18n.js';
@@ -181,10 +181,10 @@ export function initSettingsFrame() {
                         import('./idb.js').then(m => m.idbClear());
                         
                         if (Capacitor.isNativePlatform()) {
-                            try {
-                                await GoogleAuth.signOut();
-                            } catch (e) {}
-                        }
+    try {
+        await SocialLogin.logout();
+    } catch (e) {}
+}
 
                         await signOut(auth);
                         window.location.reload(); 
