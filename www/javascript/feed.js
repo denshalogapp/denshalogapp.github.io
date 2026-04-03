@@ -68,16 +68,18 @@ export async function initFeedFrame() {
         }
     }
 
+    if (feedList) {
+        feedList.addEventListener('click', handleFeedClick);
+    }
+
     if (feedList && !postsUnsubscribe) {
         const postsRef = collection(db, 'posts');
         const q = query(postsRef, orderBy('timestamp', 'desc'));
-        
+
         postsUnsubscribe = onSnapshot(q, (snapshot) => {
             latestPosts = snapshot.docs;
             renderFeed();
         });
-
-        feedList.addEventListener('click', handleFeedClick);
     }
 }
 
