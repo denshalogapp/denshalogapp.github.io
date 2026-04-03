@@ -249,6 +249,10 @@ window.dispatchEvent(new CustomEvent('authResolved'));
                 }
             } catch (e) {
                 console.error('Auth flow error:', e);
+                authContainer.style.transition = 'none';
+                authContainer.classList.remove('hidden', 'translate-y-full');
+                void authContainer.offsetWidth;
+                authContainer.style.transition = '';
                 if (errorMsg) {
                     errorMsg.innerText = "An error occurred. Please try again.";
                     errorMsg.classList.remove('hidden');
