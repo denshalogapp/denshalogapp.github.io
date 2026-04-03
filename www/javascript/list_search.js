@@ -3,6 +3,15 @@ import { renderLines } from './list_render.js';
 import { showLineDetail } from './list_detail.js';
 import { getLanguage, t } from './i18n.js';
 
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 export function populatePrefectures() {
     const lang = getLanguage();
     const allPrefs = t('list.allPrefectures');
@@ -126,9 +135,9 @@ export function handleSearch(e) {
     let html = '';
     matchedLines.forEach(([id, data]) => {
         const lineName = lang === 'ja' ? (data.name_jp || data.name_en) : (data.name_en || data.name_jp);
-        html += `<div class="search-result flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-gray-50 border-b-[2px] border-black last:border-b-0" data-type="line" data-line-id="${id}">
+        html += `<div class="search-result flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-gray-50 border-b-[2px] border-black last:border-b-0" data-type="line" data-line-id="${escapeHtml(id)}">
                     <div class="w-10 h-3 rounded-full border-[2px] border-black shrink-0" style="background-color:${data.color}"></div>
-                    <span class="text-sm font-black uppercase">${lineName}</span>
+                    <span class="text-sm font-black uppercase">${escapeHtml(lineName)}</span>
                 </div>`;
     });
 
@@ -138,10 +147,10 @@ export function handleSearch(e) {
             const line = state.localLines[String(s.line_id)];
             const lineName = line ? (lang === 'ja' ? (line.name_jp || line.name_en) : (line.name_en || line.name_jp)) : '';
 
-            html += `<div class="search-result flex items-center gap-3 px-6 py-4 cursor-pointer hover:bg-gray-50 border-b-[2px] border-black last:border-b-0" data-type="station" data-line-id="${s.line_id}" data-station-id="${s.id || s.station_id || ''}">
+            html += `<div class="search-result flex items-center gap-3 px-6 py-4 cursor-pointer hover:bg-gray-50 border-b-[2px] border-black last:border-b-0" data-type="station" data-line-id="${escapeHtml(s.line_id)}" data-station-id="${escapeHtml(s.id || s.station_id || '')}">
                         <div class="w-4 h-4 rounded-full border-[3px] border-black shrink-0 bg-white" style="border-color:${line?.color || '#000'}"></div>
-                        <span class="text-sm font-black uppercase">${group.name}</span>
-                        <span class="ml-auto text-[10px] font-black uppercase text-gray-400">${lineName}</span>
+                        <span class="text-sm font-black uppercase">${escapeHtml(group.name)}</span>
+                        <span class="ml-auto text-[10px] font-black uppercase text-gray-400">${escapeHtml(lineName)}</span>
                     </div>`;
             return;
         }
@@ -157,16 +166,16 @@ export function handleSearch(e) {
                 ? (lang === 'ja' ? (line.name_jp || line.name_en) : (line.name_en || line.name_jp))
                 : `Line ${s.line_id || ''}`;
 
-            return `<div class="search-result flex items-center gap-2 px-6 py-3 cursor-pointer hover:bg-gray-50" data-type="station" data-line-id="${s.line_id}" data-station-id="${s.id || s.station_id || ''}">
+            return `<div class="search-result flex items-center gap-2 px-6 py-3 cursor-pointer hover:bg-gray-50" data-type="station" data-line-id="${escapeHtml(s.line_id)}" data-station-id="${escapeHtml(s.id || s.station_id || '')}">
                         <div class="w-3 h-3 rounded-full border-[2px] border-black shrink-0" style="background-color:${line?.color || '#000'}"></div>
-                        <span class="text-xs font-black uppercase">${lineName}</span>
+                        <span class="text-xs font-black uppercase">${escapeHtml(lineName)}</span>
                     </div>`;
         }).join('');
 
         html += `<div class="border-b-[2px] border-black last:border-b-0">
                     <div class="multi-station-header flex items-center gap-3 px-6 py-4 cursor-pointer hover:bg-gray-50">
                         <div class="flex gap-1">${colorDots}</div>
-                        <span class="text-sm font-black uppercase">${group.name}</span>
+                        <span class="text-sm font-black uppercase">${escapeHtml(group.name)}</span>
                         <svg class="multi-chevron ml-auto w-4 h-4 shrink-0 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M6 9l6 6 6-6"/>
                         </svg>
