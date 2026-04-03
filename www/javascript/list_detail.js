@@ -7,6 +7,15 @@ import { setupRefinement, handleRefineDraw, processFinalStamp, applyLiveContrast
 import { playReturnSound } from './audio.js';
 import { getLanguage, t } from './i18n.js';
 
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 let currentStationId = null, currentLineId = null, viewingStationId = null, isFlipped = false, currentTool = 'brush';
 let currentOriginalImage = null;
 
@@ -123,7 +132,7 @@ function renderModelsList(lineId, line, localizedLineName) {
         html += `
             <div class="cursor-pointer model-image-preview transition-transform active:scale-95 flex flex-col items-center gap-2" data-model-id="${modelId}">
                 <img src="${data.image}" class="w-full aspect-square object-cover border-[4px] border-black rounded-[20px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white pointer-events-none">
-                <span class="text-[10px] font-black uppercase tracking-tight text-center truncate w-full px-1">${modelName}</span>
+                <span class="text-[10px] font-black uppercase tracking-tight text-center truncate w-full px-1">${escapeHtml(modelName)}</span>
             </div>
         `;
     });
