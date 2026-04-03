@@ -68,6 +68,8 @@ export async function initFeedFrame() {
         }
     }
 
+    // feedList is always a fresh DOM element after turbo:frame-load replaces
+    // the frame content, so re-attaching here on every call is safe and necessary.
     if (feedList) {
         feedList.addEventListener('click', handleFeedClick);
     }
