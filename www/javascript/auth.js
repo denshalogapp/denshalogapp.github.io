@@ -248,6 +248,12 @@ window.dispatchEvent(new CustomEvent('authResolved'));
                     window.dispatchEvent(new CustomEvent('authResolved'));
                 }
             } catch (e) {
+                console.error('Auth flow error:', e);
+                if (errorMsg) {
+                    errorMsg.innerText = "An error occurred. Please try again.";
+                    errorMsg.classList.remove('hidden');
+                }
+                window.dispatchEvent(new CustomEvent('authResolved'));
             }
 
         } else {
