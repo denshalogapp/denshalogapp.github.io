@@ -6,6 +6,7 @@ import { SocialLogin } from '@capgo/capacitor-social-login';
 import { showAuthScreen } from './auth.js';
 import { updateUserSetting } from './user.js';
 import { applyTranslations, getLanguage, setLanguage, t } from './i18n.js';
+import { playOkSound, playReturnSound, playInSound, playOutSound } from './audio.js'; 
 
 const DARK_MODE_KEY = 'eki-dark-mode';
 const SOUND_KEY = 'eki-sound';
@@ -70,8 +71,10 @@ export function initSettings() {
         settingsBtn.onclick = function () {
             const isOpen = !settingsContainer.classList.contains('-translate-x-full');
             if (isOpen) {
+                playOutSound(); // Play out.ogg when closing settings
                 settingsContainer.classList.add('-translate-x-full', 'pointer-events-none');
             } else {
+                playInSound(); // Play in.ogg when opening settings
                 window.resetUI?.();
                 settingsContainer.classList.remove('-translate-x-full', 'pointer-events-none');
             }
@@ -114,6 +117,7 @@ export function initSettingsFrame() {
         
         langEnBtn.onclick = async function() {
             if (getLanguage() !== 'en') {
+                playOkSound();
                 setLanguage('en');
                 await updateUserSetting('language', 'en');
                 window.location.reload();
@@ -122,6 +126,7 @@ export function initSettingsFrame() {
         
         langJaBtn.onclick = async function() {
             if (getLanguage() !== 'ja') {
+                playOkSound();
                 setLanguage('ja');
                 await updateUserSetting('language', 'ja');
                 window.location.reload();
@@ -133,6 +138,8 @@ export function initSettingsFrame() {
         setToggle(darkModeToggle, savedDark);
         darkModeToggle.onclick = async function () {
             const isDark = darkModeToggle.classList.contains('bg-gray-300');
+            if (isDark) playOkSound(); else playReturnSound();
+            
             applyDarkMode(isDark);
             localStorage.setItem(DARK_MODE_KEY, isDark);
             setToggle(darkModeToggle, isDark);
@@ -145,6 +152,8 @@ export function initSettingsFrame() {
         setToggle(soundToggle, savedSound);
         soundToggle.onclick = async function () {
             const willBeOn = soundToggle.classList.contains('bg-gray-300');
+            if (willBeOn) playOkSound(); else playReturnSound();
+
             setToggle(soundToggle, willBeOn);
             localStorage.setItem(SOUND_KEY, willBeOn);
             await updateUserSetting(SOUND_KEY, willBeOn);
@@ -155,6 +164,8 @@ export function initSettingsFrame() {
         setToggle(declineRequestsToggle, savedDeclineRequests);
         declineRequestsToggle.onclick = async function () {
             const willBeOn = declineRequestsToggle.classList.contains('bg-gray-300');
+            if (willBeOn) playOkSound(); else playReturnSound();
+
             setToggle(declineRequestsToggle, willBeOn);
             localStorage.setItem(DECLINE_REQUESTS_KEY, willBeOn);
             await updateUserSetting(DECLINE_REQUESTS_KEY, willBeOn);
@@ -175,16 +186,17 @@ export function initSettingsFrame() {
             } else {
                 currentSignOutBtn.innerText = t('settings.signOut') || "Sign Out";
                 currentSignOutBtn.onclick = async () => {
+                    playReturnSound();
                     try {
                         localStorage.clear();
                         sessionStorage.clear();
                         import('./idb.js').then(m => m.idbClear());
                         
                         if (Capacitor.isNativePlatform()) {
-    try {
-        await SocialLogin.logout();
-    } catch (e) {}
-}
+                            try {
+                                await SocialLogin.logout();
+                            } catch (e) {}
+                        }
 
                         await signOut(auth);
                         window.location.reload(); 
@@ -197,6 +209,7 @@ export function initSettingsFrame() {
             if (user) {
                 currentDeleteBtn.classList.remove('hidden');
                 currentDeleteBtn.onclick = () => {
+                    playReturnSound();
                     const confirmModal = document.getElementById('generic-confirm-modal');
                     const confirmBox = document.getElementById('generic-confirm-box');
                     
@@ -255,6 +268,7 @@ export function initSettingsFrame() {
     if (refreshBtn) {
         refreshBtn.onclick = function(e) {
             e.preventDefault();
+            playOkSound();
             
             const loadingOverlay = document.getElementById('app-loading-overlay');
             if (loadingOverlay) {

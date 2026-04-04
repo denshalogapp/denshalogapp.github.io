@@ -1,6 +1,7 @@
 import { userStamps, userStampDates } from './user.js';
 import { state } from './list_state.js';
 import { getLanguage, t } from './i18n.js';
+import { playSlideSound, playPageSound, playReturnSound } from './audio.js';
 
 let currentPage = 0;
 let sortedStamps = [];
@@ -13,10 +14,16 @@ export function initStampBook() {
     const nextBtn = document.getElementById('book-next-btn');
     const memoInput = document.getElementById('book-stamp-memo');
 
-    if(btn) btn.onclick = openBook;
+    if(btn) {
+        btn.onclick = () => {
+            playSlideSound();
+            openBook();
+        };
+    }
 
     if(closeBtn) {
         closeBtn.onclick = () => {
+            playReturnSound();
             saveCurrentMemo();
             cont.classList.add('translate-y-full');
             setTimeout(() => cont.classList.add('pointer-events-none'), 500);
@@ -26,6 +33,7 @@ export function initStampBook() {
     if(prevBtn) {
         prevBtn.onclick = () => {
             if (currentPage > 0) {
+                playPageSound();
                 saveCurrentMemo();
                 currentPage--;
                 renderPage();
@@ -36,6 +44,7 @@ export function initStampBook() {
     if(nextBtn) {
         nextBtn.onclick = () => {
             if (currentPage < sortedStamps.length - 1) {
+                playPageSound();
                 saveCurrentMemo();
                 currentPage++;
                 renderPage();

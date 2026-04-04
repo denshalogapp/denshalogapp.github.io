@@ -3,6 +3,7 @@ import { collection, query, where, getDocs, getDoc, addDoc, onSnapshot, doc, upd
 import { showAuthScreen } from './auth.js';
 import { getVisitedStations, userStamps, CURRENT_USER_ID, CURRENT_USERNAME, IS_ANONYMOUS } from './user.js';
 import { applyTranslations, t } from './i18n.js';
+import { playConfirm1Sound, playReturnSound } from './audio.js';
 
 export function updateProfileCounts() {
     const stationsCount = document.getElementById('profile-stations-count');
@@ -110,6 +111,8 @@ export async function initProfileFrame() {
                     timestamp: new Date()
                 });
 
+                playConfirm1Sound();
+
                 messageEl.classList.remove('text-gray-500');
                 messageEl.classList.add('text-[#B2FF59]');
                 messageEl.innerText = t('profile.requestSent');
@@ -192,6 +195,9 @@ export async function initProfileFrame() {
                         updateDoc(doc(db, 'users', fromId), { friends: arrayUnion(toId) }),
                         deleteDoc(doc(db, 'friend_requests', reqDoc.id)),
                     ]);
+
+                    playConfirm2Sound();
+
                     if (messageEl) {
                         messageEl.innerText = '';
                         messageEl.classList.add('hidden');
@@ -207,6 +213,7 @@ export async function initProfileFrame() {
 
             reqEl.querySelector('.decline-btn').onclick = async () => {
                 await deleteDoc(doc(db, 'friend_requests', reqDoc.id));
+                playReturnSound();
             };
 
             if (requestsList) requestsList.appendChild(reqEl);

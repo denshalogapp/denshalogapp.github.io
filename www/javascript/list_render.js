@@ -3,6 +3,7 @@ import { showLineDetail } from './list_detail.js';
 import { isVisited, userStamps, userModels } from './user.js';
 import { idbGet } from './idb.js';
 import { getLanguage } from './i18n.js';
+import { playOkSound } from './audio.js';
 
 export async function renderLines() {
     state.localStations = window.allStations || await idbGet('stationData') || [];
@@ -86,7 +87,10 @@ export function renderNextChunk() {
             <div class="w-full flex gap-1 h-2 mt-1 pointer-events-none">${segments}</div>
         `;
 
-        card.onclick = () => showLineDetail(lineId);
+        card.onclick = () => {
+            playOkSound();
+            showLineDetail(lineId);
+        };
         selectors.linesContainer.appendChild(card);
     });
 

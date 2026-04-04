@@ -5,7 +5,7 @@ import { renderPolylines, polylines } from './map_layers.js';
 import { renderVisibleMarkers, updateUserMarker } from './map_markers.js';
 import { toggleStation } from './user.js';
 import { idbSet, idbGet } from './idb.js';
-import { playReturnSound } from './audio.js';
+import { playReturnSound, playOkSound } from './audio.js';
 import { t, getLanguage } from './i18n.js';
 
 let map;
@@ -211,6 +211,7 @@ window.renderVisibleMarkers = () => {
 };
 
 export function showTooltip(latLng, data, type) {
+    playOkSound();
     const tooltip = document.getElementById('map-tooltip');
     const stationEl = document.getElementById('tooltip-station');
     const container = document.getElementById('tooltip-container');

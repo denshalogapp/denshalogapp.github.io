@@ -4,7 +4,7 @@ import { loadOpenCV } from './stamp_cv_loader.js';
 import { startCamera, stopCamera } from './stamp_camera.js';
 import { startCrop, handleCropInput, finalizeWarp } from './stamp_crop.js';
 import { setupRefinement, handleRefineDraw, processFinalStamp, applyLiveContrast, triggerUndo, toggleInvert } from './stamp_refine.js';
-import { playReturnSound } from './audio.js';
+import { playReturnSound, playOkSound, playCameraSound, playConfirm3Sound, playSlideSound } from './audio.js';
 import { t } from './i18n.js';
 
 let currentStationId = null;
@@ -44,6 +44,7 @@ export function initStampUI(refreshCallback) {
     selectors.detailStationsList.addEventListener('click', e => {
         const btn = e.target.closest('.add-stamp-btn');
         if (btn) {
+            playOkSound();
             currentStationId = String(btn.dataset.stationId);
             els.pill.innerText = btn.dataset.stationName;
             els.pill.style.backgroundColor = btn.dataset.lineColor;
@@ -56,6 +57,7 @@ export function initStampUI(refreshCallback) {
         if (prev) {
             e.preventDefault();
             e.stopPropagation();
+            playSlideSound();
             viewingStationId = String(prev.dataset.stationId);
             const stampData = userStamps[viewingStationId];
             if (stampData) {
@@ -77,6 +79,7 @@ export function initStampUI(refreshCallback) {
     });
 
     document.getElementById("capture-stamp-btn").onclick = () => {
+        playCameraSound();
         els.canvas.width = els.video.videoWidth; 
         els.canvas.height = els.video.videoHeight;
         els.canvas.getContext('2d').drawImage(els.video, 0, 0);
@@ -88,6 +91,7 @@ export function initStampUI(refreshCallback) {
 
     document.getElementById("upload-stamp-input").onchange = (e) => {
         const file = e.target.files[0]; if (!file) return;
+        playCameraSound();
         const reader = new FileReader();
         reader.onload = (event) => {
             stopCamera(els.video, els.place);
@@ -111,6 +115,7 @@ export function initStampUI(refreshCallback) {
 
     document.getElementById("confirm-crop-btn").onclick = () => {
         if (!window.isCVModelLoaded) return;
+        playOkSound();
         const warped = finalizeWarp(els.cropCanvas);
         currentOriginalImage = warped;
         els.cropCont.classList.add('translate-y-full', 'pointer-events-none');
@@ -127,17 +132,20 @@ export function initStampUI(refreshCallback) {
     window.addEventListener('mouseup', () => handleRefineDraw(null, null, null, null, 'stop', isFlipped));
     window.addEventListener('touchend', () => handleRefineDraw(null, null, null, null, 'stop', isFlipped));
 
-    document.getElementById("tool-brush").onclick = () => { currentTool = 'brush'; document.getElementById("tool-brush").classList.add('border-white'); document.getElementById("tool-erase").classList.remove('border-white'); };
-    document.getElementById("tool-erase").onclick = () => { currentTool = 'erase'; document.getElementById("tool-erase").classList.add('border-white'); document.getElementById("tool-brush").classList.remove('border-white'); };
-    els.flip.onclick = () => { isFlipped = !isFlipped; els.refineBase.style.transform = els.refineMask.style.transform = `scaleX(${isFlipped ? -1 : 1})`; };
+    document.getElementById("tool-brush").onclick = () => { playOkSound(); currentTool = 'brush'; document.getElementById("tool-brush").classList.add('border-white'); document.getElementById("tool-erase").classList.remove('border-white'); };
+    document.getElementById("tool-erase").onclick = () => { playOkSound(); currentTool = 'erase'; document.getElementById("tool-erase").classList.add('border-white'); document.getElementById("tool-brush").classList.remove('border-white'); };
+    els.flip.onclick = () => { playOkSound(); isFlipped = !isFlipped; els.refineBase.style.transform = els.refineMask.style.transform = `scaleX(${isFlipped ? -1 : 1})`; };
     document.getElementById("tool-undo").onclick = () => {
+        playOkSound();
         triggerUndo(els.refineMask, els.contrast.value);
     };
     els.invert.onclick = () => {
+        playOkSound();
         toggleInvert(els.refineMask, els.contrast.value);
     };
 
     document.getElementById("confirm-refine-btn").onclick = async () => {
+        playConfirm3Sound();
         const dateVal = els.datePicker.value;
         let customTs = Date.now();
         if (dateVal) {
@@ -150,19 +158,22 @@ export function initStampUI(refreshCallback) {
         refreshCallback();
     };
 
-    document.getElementById("close-stamp-btn").onclick = () => { els.addCont.classList.add("translate-y-full", "pointer-events-none"); stopCamera(els.video, els.place); };
+    document.getElementById("close-stamp-btn").onclick = () => { playReturnSound(); els.addCont.classList.add("translate-y-full", "pointer-events-none"); stopCamera(els.video, els.place); };
     
     document.getElementById("cancel-crop-btn").onclick = () => {
+        playReturnSound();
         els.cropCont.classList.add("translate-y-full", "pointer-events-none");
     };
 
     document.getElementById("cancel-refine-btn").onclick = () => {
+        playReturnSound();
         els.refineCont.classList.add("translate-y-full", "pointer-events-none");
     };
 
-    document.getElementById("close-stamp-modal").onclick = () => els.modalCont.classList.add('opacity-0', 'pointer-events-none');
+    document.getElementById("close-stamp-modal").onclick = () => { playReturnSound(); els.modalCont.classList.add('opacity-0', 'pointer-events-none'); };
     
     document.getElementById("edit-stamp-btn").onclick = () => {
+        playOkSound();
         els.modalCont.classList.add('opacity-0', 'pointer-events-none');
         const stampData = userStamps[viewingStationId];
         const originalData = userStampOriginals[viewingStationId] || stampData; 
@@ -184,12 +195,14 @@ export function initStampUI(refreshCallback) {
     };
 
     document.getElementById("delete-stamp-btn").onclick = () => {
+        playOkSound();
         deleteConfirmModal.classList.remove('opacity-0', 'pointer-events-none');
         deleteConfirmBox.classList.remove('scale-95');
         deleteConfirmBox.classList.add('scale-100');
     };
 
     document.getElementById("cancel-delete-btn").onclick = () => {
+        playReturnSound();
         deleteConfirmModal.classList.add('opacity-0', 'pointer-events-none');
         deleteConfirmBox.classList.add('scale-95');
         deleteConfirmBox.classList.remove('scale-100');

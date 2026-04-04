@@ -1,6 +1,6 @@
 import { db } from './firebase.js';
 import { doc, collection, onSnapshot, setDoc, deleteDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { playConfirmSound } from './audio.js';
+import { playConfirm1Sound } from './audio.js';
 
 export let CURRENT_USER_ID = null;
 export let CURRENT_USERNAME = "Guest";
@@ -35,7 +35,7 @@ export async function toggleStation(stationId) {
         await setDoc(userRef, { visited_stations: arrayRemove(String(stationId)) }, { merge: true });
     } else {
         await setDoc(userRef, { visited_stations: arrayUnion(String(stationId)) }, { merge: true });
-        playConfirmSound();
+        playConfirm1Sound();
     }
 }
 

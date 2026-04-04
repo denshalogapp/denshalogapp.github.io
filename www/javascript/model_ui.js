@@ -1,7 +1,7 @@
 import { selectors } from './list_state.js';
 import { userModels, saveModel, deleteModel } from './user.js';
 import { startCamera, stopCamera } from './stamp_camera.js';
-import { playReturnSound } from './audio.js';
+import { playReturnSound, playOkSound, playCameraSound, playConfirm3Sound, playSlideSound } from './audio.js';
 import { t } from './i18n.js';
 import { showPostToFeedPrompt } from './feed.js';
 
@@ -35,6 +35,7 @@ export function initModelUI(refreshCallback) {
         selectors.detailModelsList.addEventListener('click', e => {
             const addModelBtn = e.target.closest('.add-model-btn');
             if (addModelBtn) {
+                playOkSound();
                 currentLineId = String(addModelBtn.dataset.lineId);
                 editingModelId = null;
                 modelEls.pill.innerText = addModelBtn.dataset.lineName;
@@ -57,6 +58,7 @@ export function initModelUI(refreshCallback) {
             if (modelPrev) {
                 e.preventDefault();
                 e.stopPropagation();
+                playSlideSound();
                 viewingModelId = String(modelPrev.dataset.modelId);
                 const modelData = userModels[viewingModelId];
                 if (modelData) {
@@ -77,6 +79,7 @@ export function initModelUI(refreshCallback) {
     }
 
     document.getElementById("capture-model-btn").onclick = async () => {
+        playCameraSound();
         modelEls.canvas.width = modelEls.video.videoWidth; 
         modelEls.canvas.height = modelEls.video.videoHeight;
         modelEls.canvas.getContext('2d').drawImage(modelEls.video, 0, 0);
@@ -94,6 +97,7 @@ export function initModelUI(refreshCallback) {
 
     document.getElementById("upload-model-input").onchange = (e) => {
         const file = e.target.files[0]; if (!file) return;
+        playCameraSound();
         const reader = new FileReader();
         reader.onload = async (event) => {
             stopCamera(modelEls.video, modelEls.place);
@@ -119,6 +123,7 @@ export function initModelUI(refreshCallback) {
     };
 
     document.getElementById("retake-model-btn").onclick = () => {
+        playReturnSound();
         pendingModelImageData = null;
         modelEls.previewImg.classList.add('hidden');
         modelEls.previewImg.src = '';
@@ -129,6 +134,7 @@ export function initModelUI(refreshCallback) {
 
     document.getElementById("save-model-btn").onclick = async () => {
         if (!pendingModelImageData) return;
+        playConfirm3Sound();
         const modelName = modelEls.nameInput.value.trim();
         
         const dateVal = modelEls.datePicker.value;
@@ -145,6 +151,7 @@ export function initModelUI(refreshCallback) {
     };
 
     document.getElementById("edit-model-btn").onclick = () => {
+        playOkSound();
         modelEls.modalCont.classList.add('opacity-0', 'pointer-events-none');
         
         const modelData = userModels[viewingModelId];
@@ -174,21 +181,25 @@ export function initModelUI(refreshCallback) {
     };
 
     document.getElementById("close-model-btn").onclick = () => {
+        playReturnSound();
         modelEls.addCont.classList.add("translate-y-full", "pointer-events-none");
         stopCamera(modelEls.video, modelEls.place);
     };
 
     document.getElementById("close-model-modal").onclick = () => {
+        playReturnSound();
         modelEls.modalCont.classList.add('opacity-0', 'pointer-events-none');
     };
 
     document.getElementById("delete-model-btn").onclick = () => {
+        playOkSound();
         deleteModelConfirmModal.classList.remove('opacity-0', 'pointer-events-none');
         deleteModelConfirmBox.classList.remove('scale-95');
         deleteModelConfirmBox.classList.add('scale-100');
     };
 
     document.getElementById("cancel-delete-model-btn").onclick = () => {
+        playReturnSound();
         deleteModelConfirmModal.classList.add('opacity-0', 'pointer-events-none');
         deleteModelConfirmBox.classList.add('scale-95');
         deleteModelConfirmBox.classList.remove('scale-100');

@@ -2,6 +2,7 @@ import { db } from './firebase.js';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { idbGet, idbSet } from './idb.js';
 import { getLanguage, t } from './i18n.js';
+import { playOkSound } from './audio.js';
 
 async function syncSearchIndex() {
     const cached = await idbGet('searchIndex');
@@ -171,6 +172,7 @@ export async function initSearch() {
                         if (window.map) window.map.panTo({ lat: Number(d.lat), lng: Number(d.lon) });
                     }
                 } else if (type === 'line') {
+                    playOkSound();
                     window.filterToLine?.(id);
                     const lineStations = window.allStations?.filter(s => String(s.line_id) === String(id));
                     if (lineStations?.length && window.map) {

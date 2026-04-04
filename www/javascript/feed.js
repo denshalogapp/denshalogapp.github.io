@@ -5,6 +5,7 @@ import { startCamera, stopCamera } from './stamp_camera.js';
 import { CURRENT_USER_ID, CURRENT_USERNAME, IS_ANONYMOUS } from './user.js';
 import { showAuthScreen } from './auth.js';
 import { applyTranslations, t, getLanguage } from './i18n.js';
+import { playSlideSound, playOkSound, playReturnSound, playConfirm3Sound, playCameraSound } from './audio.js';
 
 let postsUnsubscribe = null;
 let commentsUnsubscribe = null;
@@ -92,6 +93,7 @@ function setFeedFilter(filter) {
         showAuthScreen();
         return;
     }
+    playOkSound();
     currentFeedFilter = filter;
     
     const btnAll = document.getElementById('feed-filter-all');
@@ -275,6 +277,7 @@ function openCreatePost() {
         showAuthScreen();
         return;
     }
+    playOkSound();
     const cont = document.getElementById('create-post-container');
     const video = document.getElementById('feed-camera-feed');
     const place = document.getElementById('feed-camera-placeholder');
@@ -424,6 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pendingPostImage = outCanvas.toDataURL('image/jpeg', 0.8);
             
             stopCamera(video, document.getElementById('feed-camera-placeholder'));
+            playCameraSound();
             showPostPreview();
         };
     }
@@ -441,6 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     canvas.getContext('2d').drawImage(image, 0, 0);
                     const outCanvas = resizeCanvasImage(canvas, 1000);
                     pendingPostImage = outCanvas.toDataURL('image/jpeg', 0.8);
+                    playCameraSound();
                     showPostPreview();
                 };
                 image.src = event.target.result;
@@ -452,6 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (retakeBtn) {
         retakeBtn.onclick = () => {
+            playReturnSound();
             const img = document.getElementById('feed-preview-image');
             const capActs = document.getElementById('feed-capture-actions');
             const retakeBtn = document.getElementById('retake-feed-btn');
@@ -466,6 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (submitBtn) {
         submitBtn.onclick = async () => {
+            playConfirm3Sound();
             const caption = document.getElementById('post-caption-input').value.trim();
             const tag = document.getElementById('post-tag-input').value;
             const stationId = document.getElementById('post-station-id-hidden').value;
@@ -522,6 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (closeDetailBtn) {
         closeDetailBtn.onclick = () => {
+            playReturnSound();
             document.getElementById('post-detail-container').classList.add('translate-x-full', 'pointer-events-none');
             if (commentsUnsubscribe) commentsUnsubscribe();
             if (detailPostUnsubscribe) detailPostUnsubscribe();
@@ -535,6 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showAuthScreen();
                 return;
             }
+            playOkSound();
             const input = document.getElementById('comment-text-input');
             const text = input.value.trim();
             if (!text || !currentDetailPostId) return;
@@ -568,6 +577,7 @@ function showPostPreview() {
 }
 
 function openPostDetail(id) {
+    playSlideSound();
     currentDetailPostId = id;
     const cont = document.getElementById('post-detail-container');
     const content = document.getElementById('post-detail-content');
@@ -635,8 +645,10 @@ window.deleteComment = async (postId, commentId) => {
 function toggleYeah(id, hasYeahed) {
     const ref = doc(db, 'posts', id);
     if (hasYeahed) {
+        playReturnSound();
         updateDoc(ref, { yeahs: arrayRemove(CURRENT_USER_ID) });
     } else {
+        playConfirm2Sound();
         updateDoc(ref, { yeahs: arrayUnion(CURRENT_USER_ID) });
     }
 }
@@ -682,6 +694,7 @@ function initCustomTagSelect() {
     const options = optionsContainer.querySelectorAll('.tag-option');
     options.forEach(opt => {
         opt.addEventListener('click', (e) => {
+            playOkSound();
             e.stopPropagation();
             hiddenInput.value = opt.getAttribute('data-value');
             
@@ -789,9 +802,11 @@ async function toggleFriendRequest(targetId, action) {
         if (action === 'add') {
             await setDoc(currentUserRef, { out_requests: arrayUnion(targetId) }, { merge: true });
             await setDoc(targetUserRef, { in_requests: arrayUnion(CURRENT_USER_ID) }, { merge: true });
+            playConfirm2Sound();
         } else if (action === 'cancel') {
             await setDoc(currentUserRef, { out_requests: arrayRemove(targetId) }, { merge: true });
             await setDoc(targetUserRef, { in_requests: arrayRemove(CURRENT_USER_ID) }, { merge: true });
+            playReturnSound();
         }
     } catch (e) {
         console.error(e);

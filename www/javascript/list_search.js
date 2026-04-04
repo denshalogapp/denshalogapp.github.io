@@ -2,6 +2,7 @@ import { state, selectors } from './list_state.js';
 import { renderLines } from './list_render.js';
 import { showLineDetail } from './list_detail.js';
 import { getLanguage, t } from './i18n.js';
+import { playOkSound } from './audio.js';
 
 function escapeHtml(str) {
     return String(str)
@@ -30,6 +31,7 @@ export function populatePrefectures() {
     selectors.prefMenu.querySelectorAll('.pref-option').forEach(item => {
         item.onclick = (e) => {
             e.stopPropagation();
+            playOkSound();
             state.currentPrefId = item.dataset.value;
             selectors.prefSelectedText.textContent = item.dataset.name || allPrefs;
             selectors.prefMenu.classList.add('hidden');
@@ -67,6 +69,7 @@ export function populateCompanies(filteredCompanies = state.companies) {
     selectors.compMenu.querySelectorAll('.comp-option').forEach(item => {
         item.onclick = (e) => {
             e.stopPropagation();
+            playOkSound();
             state.currentCompId = item.dataset.value;
             selectors.compSelectedText.textContent = item.dataset.name || allComps;
             selectors.compMenu.classList.add('hidden');

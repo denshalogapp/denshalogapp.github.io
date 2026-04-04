@@ -1,3 +1,5 @@
+import { playInSound, playOutSound, playOkSound } from './audio.js';
+
 export function initButtons() {
     const feedBtn = document.getElementById("icon-shell-0");
     const heartBtn = document.getElementById("icon-shell-1");
@@ -43,9 +45,12 @@ export function initButtons() {
         resetUI();
         
         if (!isOpen) {
+            playInSound();
             feedContainer.classList.remove("-translate-x-full", "pointer-events-none");
             feedBtn.classList.add("bg-[#FF80AB]");
             feedBtn.querySelector("svg").classList.add("text-white");
+        } else {
+            playOutSound();
         }
     };
 
@@ -54,14 +59,18 @@ export function initButtons() {
         resetUI();
         
         if (!isOpen) {
+            playInSound();
             listContainer.classList.remove("translate-x-full", "pointer-events-none");
             listBtn.classList.add("bg-[#40C4FF]");
             listBtn.querySelector("svg").classList.add("text-white");
+        } else {
+            playOutSound();
         }
     };
 
     if (heartBtn) {
         heartBtn.onclick = function() {
+            playOkSound();
             const settingsContainer = document.getElementById("settings-container");
             const isAnyFrameOpen =
                 !feedContainer.classList.contains("-translate-x-full") ||
@@ -72,6 +81,7 @@ export function initButtons() {
             if (!isAnyFrameOpen) {
                 window.centerOnUser?.();
             } else {
+                playOutSound();
                 resetUI();
             }
         };
@@ -83,7 +93,10 @@ export function initButtons() {
             resetUI();
             
             if (!isOpen) {
+                playInSound();
                 profileContainer.classList.remove("translate-x-full", "pointer-events-none");
+            } else {
+                playOutSound();
             }
         };
     }

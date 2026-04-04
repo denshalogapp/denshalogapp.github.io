@@ -4,7 +4,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { state, selectors } from './list_state.js';
 import { renderLines, renderNextChunk } from './list_render.js';
 import { populatePrefectures, populateCompanies, handleSearch } from './list_search.js';
-import { playReturnSound } from './audio.js';
+import { playReturnSound, playSlideSound } from './audio.js';
 import { applyTranslations } from './i18n.js';
 
 async function initList() {
@@ -49,11 +49,11 @@ async function initList() {
     }, { root: null, rootMargin: '200px' });
 
     if (selectors.prefSelector) {
-        selectors.prefSelector.onclick = (e) => { e.stopPropagation(); selectors.prefMenu.classList.toggle('hidden'); selectors.compMenu.classList.add('hidden'); };
+        selectors.prefSelector.onclick = (e) => { e.stopPropagation(); playSlideSound(); selectors.prefMenu.classList.toggle('hidden'); selectors.compMenu.classList.add('hidden'); };
     }
     
     if (selectors.compSelector) {
-        selectors.compSelector.onclick = (e) => { e.stopPropagation(); selectors.compMenu.classList.toggle('hidden'); selectors.prefMenu.classList.add('hidden'); };
+        selectors.compSelector.onclick = (e) => { e.stopPropagation(); playSlideSound(); selectors.compMenu.classList.toggle('hidden'); selectors.prefMenu.classList.add('hidden'); };
     }
     
     if (selectors.searchInput) {
