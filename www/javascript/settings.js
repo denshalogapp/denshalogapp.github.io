@@ -200,8 +200,8 @@ export function initSettingsFrame() {
                     const confirmModal = document.getElementById('generic-confirm-modal');
                     const confirmBox = document.getElementById('generic-confirm-box');
                     
-                    document.getElementById('generic-confirm-title').innerText = t('settings.deleteAccountTitle') || "Delete Account?";
-                    document.getElementById('generic-confirm-message').innerText = t('settings.deleteAccountMessage') || "This will permanently delete your data and cannot be undone. Are you absolutely sure?";
+                    document.getElementById('generic-confirm-title').innerText = t('settings.deleteAccountTitle');
+                    document.getElementById('generic-confirm-message').innerText = t('settings.deleteAccountMessage');
                     
                     confirmModal.classList.remove('opacity-0', 'pointer-events-none');
                     confirmBox.classList.remove('scale-95');
