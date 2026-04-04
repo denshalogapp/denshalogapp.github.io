@@ -13,6 +13,7 @@ let detailPostUnsubscribe = null;
 let userDocUnsubscribe = null;
 let pendingPostImage = null;
 let currentDetailPostId = null;
+let currentDetailPostData = null;
 
 let currentFeedFilter = 'all';
 let latestPosts = [];
@@ -62,6 +63,9 @@ export async function initFeedFrame() {
                     currentUserOutRequests = data.out_requests || [];
                     if (latestPosts.length > 0) {
                         renderFeed();
+                    }
+                    if (currentDetailPostId && currentDetailPostData) {
+                        renderDetailPost();
                     }
                 }
             }, (e) => console.error(e));
@@ -536,6 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (commentsUnsubscribe) commentsUnsubscribe();
             if (detailPostUnsubscribe) detailPostUnsubscribe();
             currentDetailPostId = null;
+            currentDetailPostData = null;
         };
     }
 
@@ -578,9 +583,60 @@ function showPostPreview() {
     retakeBtn.classList.remove('hidden');
 }
 
+function renderDetailPost() {
+    const cont = document.getElementById('post-detail-container');
+    const content = document.getElementById('post-detail-content');
+    
+    if (!content || !currentDetailPostId || !currentDetailPostData) return;
+    
+    content.innerHTML = '';
+    content.appendChild(createPostElement(currentDetailPostId, currentDetailPostData, true));
+    
+    const yeahBtn = content.querySelector('.yeah-btn');
+    if (yeahBtn) {
+        yeahBtn.onclick = () => toggleYeah(currentDetailPostId, yeahBtn.classList.contains('bg-[#FF80AB]'));
+    }
+    
+    const delBtn = content.querySelector('.delete-post-btn');
+    if (delBtn) {
+        delBtn.onclick = () => {
+            deletePost(currentDetailPostId);
+            cont.classList.add('translate-x-full', 'pointer-events-none');
+        };
+    }
+
+    const friendBtn = content.querySelector('.friend-btn');
+    if (friendBtn) {
+        friendBtn.onclick = () => {
+            if (IS_ANONYMOUS) {
+                showAuthScreen();
+                return;
+            }
+            toggleFriendRequest(friendBtn.dataset.id, friendBtn.dataset.action);
+        };
+    }
+
+    const stationTagBtn = content.querySelector('.station-tag-btn');
+    if (stationTagBtn) {
+        stationTagBtn.onclick = () => {
+            const stationId = stationTagBtn.dataset.id;
+            if (stationId && window.allStations && window.map) {
+                const targetStation = window.allStations.find(s => String(s.id) === String(stationId) || String(s.station_id) === String(stationId));
+                if (targetStation) {
+                    if (window.resetUI) window.resetUI();
+                    if (window.filterToLine) window.filterToLine(targetStation.line_id);
+                    window.map.panTo({ lat: Number(targetStation.lat), lng: Number(targetStation.lon) });
+                    cont.classList.add('translate-x-full', 'pointer-events-none');
+                }
+            }
+        };
+    }
+}
+
 function openPostDetail(id) {
     playSlideSound();
     currentDetailPostId = id;
+    currentDetailPostData = null;
     const cont = document.getElementById('post-detail-container');
     const content = document.getElementById('post-detail-content');
     const list = document.getElementById('post-comments-list');
@@ -595,48 +651,8 @@ function openPostDetail(id) {
             cont.classList.add('translate-x-full', 'pointer-events-none');
             return;
         }
-        content.innerHTML = '';
-        content.appendChild(createPostElement(docSnap.id, docSnap.data(), true));
-        
-        const yeahBtn = content.querySelector('.yeah-btn');
-        if (yeahBtn) {
-            yeahBtn.onclick = () => toggleYeah(id, yeahBtn.classList.contains('bg-[#FF80AB]'));
-        }
-        
-        const delBtn = content.querySelector('.delete-post-btn');
-        if (delBtn) {
-            delBtn.onclick = () => {
-                deletePost(id);
-                cont.classList.add('translate-x-full', 'pointer-events-none');
-            };
-        }
-
-        const friendBtn = content.querySelector('.friend-btn');
-        if (friendBtn) {
-            friendBtn.onclick = () => {
-                if (IS_ANONYMOUS) {
-                    showAuthScreen();
-                    return;
-                }
-                toggleFriendRequest(friendBtn.dataset.id, friendBtn.dataset.action);
-            };
-        }
-
-        const stationTagBtn = content.querySelector('.station-tag-btn');
-        if (stationTagBtn) {
-            stationTagBtn.onclick = () => {
-                const stationId = stationTagBtn.dataset.id;
-                if (stationId && window.allStations && window.map) {
-                    const targetStation = window.allStations.find(s => String(s.id) === String(stationId) || String(s.station_id) === String(stationId));
-                    if (targetStation) {
-                        if (window.resetUI) window.resetUI();
-                        if (window.filterToLine) window.filterToLine(targetStation.line_id);
-                        window.map.panTo({ lat: Number(targetStation.lat), lng: Number(targetStation.lon) });
-                        cont.classList.add('translate-x-full', 'pointer-events-none');
-                    }
-                }
-            };
-        }
+        currentDetailPostData = docSnap.data();
+        renderDetailPost();
     });
 
     if (commentsUnsubscribe) commentsUnsubscribe();
