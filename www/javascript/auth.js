@@ -375,30 +375,36 @@ window.dispatchEvent(new CustomEvent('authResolved'));
         }
 
         try {
-if (Capacitor.isNativePlatform()) {
-    await SocialLogin.initialize({
-        google: {
-            webClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-            iOSClientId: '30607912305-8sjnev1fl3v0v33vesir7idsqdgfs9bc.apps.googleusercontent.com' 
-        }
-    });
+            if (Capacitor.isNativePlatform()) {
+                await SocialLogin.initialize({
+                    google: {
+                        webClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+                        iOSClientId: '30607912305-8sjnev1fl3v0v33vesir7idsqdgfs9bc.apps.googleusercontent.com' 
+                    }
+                });
 
-    const googleUser = await SocialLogin.login({
-        provider: 'google',
-        options: {
-            scopes: ['profile', 'email']
-        }
-    });
-    
-    const credential = GoogleAuthProvider.credential(googleUser.result.idToken);
+                const googleUser = await SocialLogin.login({
+                    provider: 'google',
+                    options: {
+                        scopes: ['profile', 'email']
+                    }
+                });
+                
+                const credential = GoogleAuthProvider.credential(googleUser.result.idToken);
 
-    if (auth.currentUser && auth.currentUser.isAnonymous) {
-        await linkWithCredential(auth.currentUser, credential);
-        window.location.reload();
-    } else {
-        await signInWithCredential(auth, credential);
-    }
-}
+                if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    await linkWithCredential(auth.currentUser, credential);
+                    window.location.reload();
+                } else {
+                    await signInWithCredential(auth, credential);
+                }
+            } else {
+                if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    await linkWithRedirect(auth.currentUser, googleProvider);
+                } else {
+                    await signInWithRedirect(auth, googleProvider);
+                }
+            }
         } catch (err) {
             errorMsg.innerText = err.message;
             errorMsg.classList.remove('hidden');
