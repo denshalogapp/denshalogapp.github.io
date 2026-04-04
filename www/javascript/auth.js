@@ -2,8 +2,7 @@ import { auth, db, googleProvider } from './firebase.js';
 import { 
     onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
     signInAnonymously, linkWithCredential, linkWithPopup, EmailAuthProvider,
-    GoogleAuthProvider, signInWithCredential, signInWithPopup, signInWithRedirect, deleteUser, signOut, sendPasswordResetEmail,
-    getRedirectResult
+    GoogleAuthProvider, signInWithCredential, signInWithPopup, signInWithRedirect, deleteUser, signOut, sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { setCurrentUser, initProfileSync } from './user.js';
@@ -66,8 +65,11 @@ export function initAuth() {
     const authForgotBtn = document.getElementById('auth-forgot-password');
 
     if (authUsername) {
+        authUsername.maxLength = 14;
         authUsername.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+            let val = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+            if (val.length > 14) val = val.substring(0, 14);
+            e.target.value = val;
         });
     }
 
@@ -220,9 +222,9 @@ export function initAuth() {
                             if(errorMsg) errorMsg.classList.add('hidden');
                             
                             const chosenName = authUsername.value.trim();
-                            if (!chosenName || chosenName.length < 6) {
+                            if (!chosenName || chosenName.length < 6 || chosenName.length > 14) {
                                 if(errorMsg) {
-                                    errorMsg.innerText = "Username must be at least 6 characters long.";
+                                    errorMsg.innerText = "Username must be between 6 and 14 characters.";
                                     errorMsg.classList.remove('hidden');
                                 }
                                 return;
@@ -338,7 +340,7 @@ export function initAuth() {
 
         try {
             if (isSignUpMode) {
-                if (username.length < 6) throw new Error("Username must be at least 6 characters long.");
+                if (username.length < 6 || username.length > 14) throw new Error("Username must be between 6 and 14 characters.");
                 
                 let currentEmail = identifier;
                 if (!currentEmail.includes('@')) throw new Error("Please enter a valid email address for signup.");
@@ -386,8 +388,8 @@ export function initAuth() {
                 errorMsg.classList.remove('hidden');
                 return;
             }
-            if (currentUname.length < 6) {
-                errorMsg.innerText = "Username must be at least 6 characters long.";
+            if (currentUname.length < 6 || currentUname.length > 14) {
+                errorMsg.innerText = "Username must be between 6 and 14 characters.";
                 errorMsg.classList.remove('hidden');
                 return;
             }
