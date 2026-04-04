@@ -68,16 +68,21 @@ export async function initFeedFrame() {
         }
     }
 
+    // feedList is always a fresh DOM element after turbo:frame-load replaces
+    // the frame content, so re-attaching here on every call is safe and necessary.
+    if (feedList) {
+        feedList.removeEventListener('click', handleFeedClick);
+        feedList.addEventListener('click', handleFeedClick);
+    }
+
     if (feedList && !postsUnsubscribe) {
         const postsRef = collection(db, 'posts');
         const q = query(postsRef, orderBy('timestamp', 'desc'));
-        
+
         postsUnsubscribe = onSnapshot(q, (snapshot) => {
             latestPosts = snapshot.docs;
             renderFeed();
         });
-
-        feedList.addEventListener('click', handleFeedClick);
     }
 }
 
@@ -244,7 +249,7 @@ function createPostElement(id, data, isDetail = false) {
     div.innerHTML = `
         <div class="flex items-center justify-between mb-5">
             <div class="flex flex-col">
-                <h3 class="font-black text-2xl uppercase tracking-tighter dark:text-white">${data.username}</h3>
+                <h3 class="font-black text-2xl uppercase tracking-tighter dark:text-white">${escapeHtml(data.username)}</h3>
                 <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${new Date(data.timestamp).toLocaleString()}</span>
             </div>
             <div class="flex gap-2">
@@ -253,7 +258,7 @@ function createPostElement(id, data, isDetail = false) {
             </div>
         </div>
         ${displayImage ? `<div class="w-full aspect-square bg-gray-200 dark:bg-slate-700 mb-5 border-[4px] border-black dark:border-slate-600 overflow-hidden rounded-2xl ${triggerClass}" data-id="${id}"><img src="${displayImage}" loading="lazy" class="w-full h-full object-cover"></div>` : ''}
-        <p class="text-base font-bold dark:text-gray-200 ${triggerClass}" data-id="${id}">${data.caption || ''}</p>
+        <p class="text-base font-bold dark:text-gray-200 ${triggerClass}" data-id="${id}">${escapeHtml(data.caption || '')}</p>
         ${tagContainer}
         <div class="flex gap-4 mt-6">
             <button class="yeah-btn flex-1 ${yeahColor} border-[4px] border-black dark:border-slate-600 rounded-xl py-3 ${yeahText} font-black text-base uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all flex items-center justify-center gap-2" data-id="${id}">
@@ -366,9 +371,9 @@ function initFeedStationSearch() {
 
             html += `
                 <div class="feed-station-result flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 border-b-[2px] border-black dark:border-slate-600 last:border-b-0"
-                     data-id="${sId}" data-name="${name}">
+                     data-id="${sId}" data-name="${escapeHtml(name)}">
                     <div class="flex gap-1">${colorDots}</div>
-                    <span class="text-xs font-black uppercase dark:text-white">${name}</span>
+                    <span class="text-xs font-black uppercase dark:text-white">${escapeHtml(name)}</span>
                 </div>
             `;
         });
@@ -610,10 +615,10 @@ function openPostDetail(id) {
             const delHtml = isOwner ? `<button class="absolute top-3 right-3 text-gray-400 hover:text-black dark:hover:text-white transition-colors" onclick="window.deleteComment('${id}', '${docSnap.id}')"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>` : '';
             item.innerHTML = `
                 <div class="flex items-center gap-2">
-                    <span class="font-black text-sm uppercase dark:text-white">${data.username}</span>
+                    <span class="font-black text-sm uppercase dark:text-white">${escapeHtml(data.username)}</span>
                     <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">${new Date(data.timestamp).toLocaleString()}</span>
                 </div>
-                <p class="text-sm font-bold dark:text-gray-200 mt-1">${data.text}</p>
+                <p class="text-sm font-bold dark:text-gray-200 mt-1">${escapeHtml(data.text)}</p>
                 ${delHtml}
             `;
             list.appendChild(item);
@@ -705,6 +710,80 @@ function initCustomTagSelect() {
             if (arrow) arrow.classList.remove('rotate-180');
         }
     });
+}
+
+export function openCreatePostWith(imageData, tag) {
+    if (IS_ANONYMOUS) return;
+
+    const cont = document.getElementById('create-post-container');
+    const video = document.getElementById('feed-camera-feed');
+    const place = document.getElementById('feed-camera-placeholder');
+    const img = document.getElementById('feed-preview-image');
+    const capBtn = document.getElementById('feed-capture-actions');
+    const retakeBtn = document.getElementById('retake-feed-btn');
+    const caption = document.getElementById('post-caption-input');
+    const tagInput = document.getElementById('post-tag-input');
+    const tagDisplay = document.getElementById('post-tag-display');
+    const searchInput = document.getElementById('post-station-search-input');
+    const hiddenId = document.getElementById('post-station-id-hidden');
+
+    if (!cont || !img || !capBtn || !retakeBtn || !caption) return;
+
+    caption.value = '';
+    if (searchInput) searchInput.value = '';
+    if (hiddenId) hiddenId.value = '';
+
+    stopCamera(video, place);
+
+    pendingPostImage = imageData;
+    img.src = imageData;
+    img.classList.remove('hidden');
+    capBtn.classList.add('hidden');
+    retakeBtn.classList.remove('hidden');
+
+    if (tag && tagInput) {
+        tagInput.value = tag;
+        const i18nKey = `post.tags.${tag}`;
+        if (tagDisplay) {
+            tagDisplay.setAttribute('data-i18n', i18nKey);
+            tagDisplay.innerText = t(i18nKey);
+        }
+    } else {
+        if (tagInput) tagInput.value = '';
+        if (tagDisplay) {
+            tagDisplay.setAttribute('data-i18n', 'post.tags.none');
+            tagDisplay.innerText = t('post.tags.none');
+        }
+    }
+
+    cont.classList.remove('translate-y-full', 'pointer-events-none');
+}
+
+export function showPostToFeedPrompt(imageData, tag) {
+    if (IS_ANONYMOUS) return;
+
+    const modal = document.getElementById('generic-confirm-modal');
+    const box = document.getElementById('generic-confirm-box');
+
+    document.getElementById('generic-confirm-title').innerText = t('post.shareToFeedTitle');
+    document.getElementById('generic-confirm-message').innerText = t('post.shareToFeedMsg');
+
+    modal.classList.remove('opacity-0', 'pointer-events-none');
+    box.classList.remove('scale-95');
+    box.classList.add('scale-100');
+
+    document.getElementById('generic-confirm-cancel').onclick = () => {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        box.classList.add('scale-95');
+        box.classList.remove('scale-100');
+    };
+
+    document.getElementById('generic-confirm-ok').onclick = () => {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        box.classList.add('scale-95');
+        box.classList.remove('scale-100');
+        openCreatePostWith(imageData, tag);
+    };
 }
 
 async function toggleFriendRequest(targetId, action) {

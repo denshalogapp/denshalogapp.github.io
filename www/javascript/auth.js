@@ -2,7 +2,8 @@ import { auth, db, googleProvider } from './firebase.js';
 import { 
     onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
     signInAnonymously, linkWithCredential, linkWithPopup, EmailAuthProvider,
-    GoogleAuthProvider, signInWithCredential, signInWithPopup, signInWithRedirect, deleteUser, signOut, sendPasswordResetEmail
+    GoogleAuthProvider, signInWithCredential, signInWithPopup, signInWithRedirect, deleteUser, signOut, sendPasswordResetEmail,
+    getRedirectResult
 } from "firebase/auth";
 import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { setCurrentUser, initProfileSync } from './user.js';
@@ -46,6 +47,17 @@ export function showAuthScreen() {
 }
 
 export function initAuth() {
+
+    const errorMsg = document.getElementById('auth-error-message');
+    getRedirectResult(auth).then((result) => {
+        if (result) console.log("Redirect success:", result.user);
+    }).catch((error) => {
+        console.error("Redirect failed:", error);
+        if (errorMsg) {
+            errorMsg.innerText = "Google Sign-In Error: " + error.message;
+            errorMsg.classList.remove('hidden');
+        }
+    });
     
     initAuthLanguageSelector();
 
@@ -59,7 +71,6 @@ export function initAuth() {
     const authToggleMode = document.getElementById('auth-toggle-mode');
     const authGoogleBtn = document.getElementById('auth-google-btn');
     const authAnonBtn = document.getElementById('auth-anon-btn');
-    const errorMsg = document.getElementById('auth-error-message');
     const authForgotBtn = document.getElementById('auth-forgot-password');
 
     // Strip non-alphanumeric characters instantly as the user types
@@ -211,7 +222,6 @@ export function initAuth() {
                         if(titleEl) titleEl.innerText = "Complete Profile";
                         
                         if(authSubmitBtn) authSubmitBtn.innerText = "Save Username";
-window.dispatchEvent(new CustomEvent('authResolved'));
                         authForm.onsubmit = async (e) => {
                             e.preventDefault();
                             if(errorMsg) errorMsg.classList.add('hidden');
@@ -248,15 +258,18 @@ window.dispatchEvent(new CustomEvent('authResolved'));
                     window.dispatchEvent(new CustomEvent('authResolved'));
                 }
             } catch (e) {
-                console.error('Auth flow error:', e);
+                console.error("Post-Login Database Error:", e);
+                
                 authContainer.style.transition = 'none';
                 authContainer.classList.remove('hidden', 'translate-y-full');
                 void authContainer.offsetWidth;
                 authContainer.style.transition = '';
+                
                 if (errorMsg) {
-                    errorMsg.innerText = "An error occurred. Please try again.";
+                    errorMsg.innerText = "Database connection error during login: " + e.message;
                     errorMsg.classList.remove('hidden');
                 }
+                
                 window.dispatchEvent(new CustomEvent('authResolved'));
             }
 
@@ -385,30 +398,49 @@ window.dispatchEvent(new CustomEvent('authResolved'));
         }
 
         try {
-if (Capacitor.isNativePlatform()) {
-    await SocialLogin.initialize({
-        google: {
-            webClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-            iOSClientId: '30607912305-8sjnev1fl3v0v33vesir7idsqdgfs9bc.apps.googleusercontent.com' 
-        }
-    });
+            if (Capacitor.isNativePlatform()) {
+                await SocialLogin.initialize({
+                    google: {
+                        webClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+                        iOSClientId: '30607912305-8sjnev1fl3v0v33vesir7idsqdgfs9bc.apps.googleusercontent.com' 
+                    }
+                });
 
-    const googleUser = await SocialLogin.login({
-        provider: 'google',
-        options: {
-            scopes: ['profile', 'email']
-        }
-    });
-    
-    const credential = GoogleAuthProvider.credential(googleUser.result.idToken);
+                const googleUser = await SocialLogin.login({
+                    provider: 'google',
+                    options: {
+                        scopes: ['profile', 'email']
+                    }
+                });
+                
+                const credential = GoogleAuthProvider.credential(googleUser.result.idToken);
 
-    if (auth.currentUser && auth.currentUser.isAnonymous) {
-        await linkWithCredential(auth.currentUser, credential);
-        window.location.reload();
-    } else {
-        await signInWithCredential(auth, credential);
-    }
-}
+                // ONLY link if the user is in Sign Up mode
+                if (auth.currentUser && auth.currentUser.isAnonymous && isSignUpMode) {
+                    await linkWithCredential(auth.currentUser, credential);
+                    window.location.reload();
+                } else {
+                    // Otherwise, just log in (this abandons the guest session)
+                    await signInWithCredential(auth, credential);
+                }
+            } else {
+                // ONLY link if the user is in Sign Up mode
+                if (auth.currentUser && auth.currentUser.isAnonymous && isSignUpMode) {
+                    try {
+                        await linkWithPopup(auth.currentUser, googleProvider);
+                        window.location.reload();
+                    } catch (linkErr) {
+                        if (linkErr.code === 'auth/credential-already-in-use') {
+                            throw new Error("This Google account is already registered. To access it, switch to 'Log In' below (your Guest data will be left behind).");
+                        } else {
+                            throw linkErr;
+                        }
+                    }
+                } else {
+                    // Otherwise, just log in normally
+                    await signInWithPopup(auth, googleProvider);
+                }
+            }
         } catch (err) {
             errorMsg.innerText = err.message;
             errorMsg.classList.remove('hidden');

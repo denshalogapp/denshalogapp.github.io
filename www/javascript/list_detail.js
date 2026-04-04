@@ -6,6 +6,16 @@ import { startCrop, handleCropInput, finalizeWarp } from './stamp_crop.js';
 import { setupRefinement, handleRefineDraw, processFinalStamp, applyLiveContrast, triggerUndo, toggleInvert } from './stamp_refine.js';
 import { playReturnSound } from './audio.js';
 import { getLanguage, t } from './i18n.js';
+import { showPostToFeedPrompt } from './feed.js';
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 let currentStationId = null, currentLineId = null, viewingStationId = null, isFlipped = false, currentTool = 'brush';
 let currentOriginalImage = null;
@@ -123,7 +133,7 @@ function renderModelsList(lineId, line, localizedLineName) {
         html += `
             <div class="cursor-pointer model-image-preview transition-transform active:scale-95 flex flex-col items-center gap-2" data-model-id="${modelId}">
                 <img src="${data.image}" class="w-full aspect-square object-cover border-[4px] border-black rounded-[20px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white pointer-events-none">
-                <span class="text-[10px] font-black uppercase tracking-tight text-center truncate w-full px-1">${modelName}</span>
+                <span class="text-[10px] font-black uppercase tracking-tight text-center truncate w-full px-1">${escapeHtml(modelName)}</span>
             </div>
         `;
     });
@@ -160,6 +170,17 @@ export function initStampScanner() {
     const deleteConfirmModal = document.getElementById("delete-confirm-modal");
     const deleteConfirmBox = document.getElementById("delete-confirm-box");
 
+    const captureStampBtn = document.getElementById("capture-stamp-btn");
+
+    function setCaptureEnabled(btn, enabled) {
+        btn.disabled = !enabled;
+        if (enabled) {
+            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        } else {
+            btn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        }
+    }
+
     selectors.detailStationsList.addEventListener('click', e => {
         const btn = e.target.closest('.add-stamp-btn');
         if (btn) {
@@ -167,7 +188,10 @@ export function initStampScanner() {
             els.pill.innerText = btn.dataset.stationName;
             els.pill.style.backgroundColor = btn.dataset.lineColor;
             els.addCont.classList.remove("translate-y-full", "pointer-events-none");
-            startCamera(els.video, els.place, loadOpenCV);
+            setCaptureEnabled(captureStampBtn, true);
+            startCamera(els.video, els.place, loadOpenCV).then(stream => {
+                setCaptureEnabled(captureStampBtn, !!stream);
+            });
             return;
         }
         
@@ -326,10 +350,12 @@ export function initStampScanner() {
             customTs = new Date(dateVal + 'T12:00:00').getTime(); 
         }
 
-        await saveStamp(currentStationId, processFinalStamp(els.refineBase, els.refineMask, els.ink.value, isFlipped), currentOriginalImage, customTs);
+        const processedImage = processFinalStamp(els.refineBase, els.refineMask, els.ink.value, isFlipped);
+        await saveStamp(currentStationId, processedImage, currentOriginalImage, customTs);
         els.refineCont.classList.add('translate-y-full', 'pointer-events-none');
         isFlipped = false; els.refineBase.style.transform = els.refineMask.style.transform = 'scaleX(1)';
         showLineDetail(currentLineId);
+        showPostToFeedPrompt(processedImage, 'stamp');
     };
 
     document.getElementById("close-stamp-btn").onclick = () => { els.addCont.classList.add("translate-y-full", "pointer-events-none"); stopCamera(els.video, els.place); };

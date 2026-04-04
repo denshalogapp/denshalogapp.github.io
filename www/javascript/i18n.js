@@ -8,6 +8,8 @@ export const translations = {
             refreshData: "Refresh Data",
             signOut: "Sign Out",
             deleteAccount: "Delete Account",
+            deleteAccountTitle: "Delete Account?",
+            deleteAccountMessage: "This will permanently delete your data and cannot be undone. Are you absolutely sure?",
             privacyTitle: "Privacy",
             declineRequests: "Decline Incoming Friend Requests"
         },
@@ -96,6 +98,8 @@ export const translations = {
             talk: "Talk",
             saySomething: "Say something...",
             send: "Send",
+            shareToFeedTitle: "Post to Feed?",
+            shareToFeedMsg: "Would you like to share this to the feed?",
             tags: {
                 none: "No Tag",
                 stamp: "New Stamp Collected",
@@ -135,6 +139,8 @@ export const translations = {
             refreshData: "データを更新",
             signOut: "ログアウト",
             deleteAccount: "アカウントを削除",
+            deleteAccountTitle: "アカウントを削除しますか？",
+            deleteAccountMessage: "これにより、あなたのデータは完全に削除され、元に戻すことはできません。本当に実行してもよろしいですか？",
             privacyTitle: "プライバシー",
             declineRequests: "フレンドリクエストを拒否"
         },
@@ -223,6 +229,8 @@ export const translations = {
             talk: "トーク",
             saySomething: "コメントを入力...",
             send: "送信",
+            shareToFeedTitle: "フィードに投稿しますか？",
+            shareToFeedMsg: "フィードでシェアしますか？",
             tags: {
                 none: "タグなし",
                 stamp: "新しいスタンプをゲット",
@@ -270,7 +278,7 @@ export function t(key) {
     const lang = getLanguage();
     const keys = key.split('.');
     let value = translations[lang];
-    
+
     for (const k of keys) {
         if (value && value[k] !== undefined) {
             value = value[k];
@@ -286,7 +294,7 @@ export function applyTranslations() {
     elements.forEach(el => {
         const key = el.getAttribute('data-i18n');
         const translation = t(key);
-        
+
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
             if (el.hasAttribute('placeholder')) {
                 el.setAttribute('placeholder', translation);
@@ -295,7 +303,7 @@ export function applyTranslations() {
             }
         } else {
             const childElements = Array.from(el.children).filter(child => child.tagName !== 'BR');
-            
+
             if (childElements.length > 0) {
                 let textNodeFound = false;
                 Array.from(el.childNodes).forEach(node => {
@@ -313,6 +321,6 @@ export function applyTranslations() {
             }
         }
     });
-    
+
     document.documentElement.lang = getLanguage();
 }
