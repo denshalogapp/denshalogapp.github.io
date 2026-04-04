@@ -188,10 +188,18 @@ function handleFeedClick(e) {
 
 function createPostElement(id, data, isDetail = false) {
     const div = document.createElement('div');
-    div.className = "bg-white dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-[32px] flex flex-col";
+    const padding = isDetail ? 'p-4' : 'p-5';
+    const borderRadius = isDetail ? 'rounded-[20px]' : 'rounded-[28px]';
+    const titleSize = isDetail ? 'text-base' : 'text-xl';
+    const maxWidth = 'max-w-sm';
+
+    div.className = `bg-white dark:bg-slate-800 border-[4px] border-black dark:border-slate-600 ${padding} shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] ${borderRadius} flex flex-col ${maxWidth} mx-auto w-full`;
 
     const isOwner = data.userId === CURRENT_USER_ID;
-    const deleteBtnHtml = isOwner ? `<button class="delete-post-btn w-10 h-10 bg-[#FF5252] border-[3px] border-black dark:border-slate-600 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${id}"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>` : '';
+    const btnSize = isDetail ? 'w-7 h-7' : 'w-9 h-9';
+    const svgSize = isDetail ? 'w-3.5 h-3.5' : 'w-4.5 h-4.5';
+
+    const deleteBtnHtml = isOwner ? `<button class="delete-post-btn ${btnSize} bg-[#FF5252] border-[3px] border-black dark:border-slate-600 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${id}"><svg class="${svgSize}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>` : '';
 
     let friendBtnHtml = '';
     if (!isOwner && !IS_ANONYMOUS) {
@@ -200,9 +208,9 @@ function createPostElement(id, data, isDetail = false) {
 
         if (!isFriend) {
             if (hasRequested) {
-                friendBtnHtml = `<button class="friend-btn w-10 h-10 bg-gray-400 dark:bg-slate-600 border-[3px] border-black dark:border-slate-500 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${data.userId}" data-action="cancel"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12h-6m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg></button>`;
+                friendBtnHtml = `<button class="friend-btn ${btnSize} bg-gray-400 dark:bg-slate-600 border-[3px] border-black dark:border-slate-500 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${data.userId}" data-action="cancel"><svg class="${svgSize}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12h-6m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg></button>`;
             } else {
-                friendBtnHtml = `<button class="friend-btn w-10 h-10 bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${data.userId}" data-action="add"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg></button>`;
+                friendBtnHtml = `<button class="friend-btn ${btnSize} bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 rounded-full flex items-center justify-center text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all" data-id="${data.userId}" data-action="add"><svg class="${svgSize}" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg></button>`;
             }
         }
     }
@@ -211,7 +219,7 @@ function createPostElement(id, data, isDetail = false) {
     if (data.tag) {
         const tagKey = TAG_LEGACY_MAP[data.tag] || data.tag;
         const tagLabel = t(`post.tags.${tagKey}`);
-        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${escapeHtml(tagLabel)}</span>`);
+        tagsHtml.push(`<span class="bg-[#FF80AB] border-[3px] border-black dark:border-slate-600 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter text-black">${escapeHtml(tagLabel)}</span>`);
     }
     if (data.stationId || data.stationName) {
         const lang = getLanguage();
@@ -232,13 +240,13 @@ function createPostElement(id, data, isDetail = false) {
         }
         if (stationLabel) {
             if (data.stationId) {
-                tagsHtml.push(`<button class="station-tag-btn relative z-10 bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black hover:-translate-y-1 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-0 active:shadow-none transition-all cursor-pointer" data-id="${data.stationId}">${escapeHtml(stationLabel)}</button>`);
+                tagsHtml.push(`<button class="station-tag-btn relative z-10 bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter text-black hover:-translate-y-0.5 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-0 active:shadow-none transition-all cursor-pointer" data-id="${data.stationId}">${escapeHtml(stationLabel)}</button>`);
             } else {
-                tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tighter text-black">${escapeHtml(stationLabel)}</span>`);
+                tagsHtml.push(`<span class="bg-[#40C4FF] border-[3px] border-black dark:border-slate-600 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-tighter text-black">${escapeHtml(stationLabel)}</span>`);
             }
         }
     }
-    const tagContainer = tagsHtml.length ? `<div class="flex flex-wrap gap-2 mt-4">${tagsHtml.join('')}</div>` : '';
+    const tagContainer = tagsHtml.length ? `<div class="flex flex-wrap gap-1.5 mt-3">${tagsHtml.join('')}</div>` : '';
 
     const yeahs = data.yeahs || [];
     const hasYeahed = yeahs.includes(CURRENT_USER_ID);
@@ -249,27 +257,27 @@ function createPostElement(id, data, isDetail = false) {
     const displayImage = data.imageUrl || data.image;
 
     div.innerHTML = `
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex items-center justify-between mb-3">
             <div class="flex flex-col">
-                <h3 class="font-black text-2xl uppercase tracking-tighter dark:text-white">${escapeHtml(data.username)}</h3>
-                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${new Date(data.timestamp).toLocaleString()}</span>
+                <h3 class="font-black ${titleSize} uppercase tracking-tighter dark:text-white">${escapeHtml(data.username)}</h3>
+                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">${new Date(data.timestamp).toLocaleString()}</span>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-1.5">
                 ${friendBtnHtml}
                 ${deleteBtnHtml}
             </div>
         </div>
-        ${displayImage ? `<div class="w-full aspect-square bg-gray-200 dark:bg-slate-700 mb-5 border-[4px] border-black dark:border-slate-600 overflow-hidden rounded-2xl ${triggerClass}" data-id="${id}"><img src="${displayImage}" loading="lazy" class="w-full h-full object-cover"></div>` : ''}
-        <p class="text-base font-bold dark:text-gray-200 ${triggerClass}" data-id="${id}">${escapeHtml(data.caption || '')}</p>
+        ${displayImage ? `<div class="w-full aspect-square bg-gray-200 dark:bg-slate-700 mb-3 border-[3px] border-black dark:border-slate-600 overflow-hidden rounded-xl ${triggerClass}" data-id="${id}"><img src="${displayImage}" loading="lazy" class="w-full h-full object-cover"></div>` : ''}
+        <p class="${isDetail ? 'text-xs' : 'text-sm'} font-bold dark:text-gray-200 leading-snug ${triggerClass}" data-id="${id}">${escapeHtml(data.caption || '')}</p>
         ${tagContainer}
-        <div class="flex gap-4 mt-6">
-            <button class="yeah-btn flex-1 ${yeahColor} border-[4px] border-black dark:border-slate-600 rounded-xl py-3 ${yeahText} font-black text-base uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all flex items-center justify-center gap-2" data-id="${id}">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h-2.514"></path></svg>
-                ${t('feed.yeah')} <span class="ml-1">${yeahs.length}</span>
+        <div class="flex gap-3 mt-4">
+            <button class="yeah-btn flex-1 ${yeahColor} border-[3px] border-black dark:border-slate-600 rounded-lg py-1.5 ${yeahText} font-black text-xs uppercase tracking-tighter shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:translate-x-[3px] active:shadow-none transition-all flex items-center justify-center gap-1.5" data-id="${id}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h-2.514"></path></svg>
+                ${t('feed.yeah')} <span class="ml-0.5">${yeahs.length}</span>
             </button>
-            <button class="${isDetail ? 'opacity-50 pointer-events-none' : 'talk-btn post-detail-trigger'} flex-1 bg-white dark:bg-slate-700 border-[4px] border-black dark:border-slate-600 rounded-xl py-3 text-black dark:text-white font-black text-base uppercase tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all flex items-center justify-center gap-2" data-id="${id}">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                ${t('post.talk')} <span class="ml-1">${data.commentsCount || 0}</span>
+            <button class="${isDetail ? 'opacity-50 pointer-events-none' : 'talk-btn post-detail-trigger'} flex-1 bg-white dark:bg-slate-700 border-[3px] border-black dark:border-slate-600 rounded-lg py-1.5 text-black dark:text-white font-black text-xs uppercase tracking-tighter shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:translate-x-[3px] active:shadow-none transition-all flex items-center justify-center gap-1.5" data-id="${id}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                ${t('post.talk')} <span class="ml-0.5">${data.commentsCount || 0}</span>
             </button>
         </div>
     `;
