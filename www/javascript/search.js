@@ -2,11 +2,10 @@ import { db } from './firebase.js';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { idbGet, idbSet } from './idb.js';
 import { getLanguage, t } from './i18n.js';
-import { playOkSound } from './audio.js';
+import { playOkSound, playSlideSound } from './audio.js';
 
 async function syncSearchIndex() {
     const cached = await idbGet('searchIndex');
-    // If we have a cached version but it's missing Japanese names (from the old version), force a refresh
     if (cached && cached.lines && Object.values(cached.lines)[0]?.name_jp) {
         return cached;
     }
@@ -159,6 +158,7 @@ export async function initSearch() {
                 searchInput.value = '';
 
                 if (type === 'station') {
+                    playOkSound();
                     const cached = window.allStations?.find(s => String(s.station_id || s.id) === String(id));
                     if (cached) {
                         window.filterToLine?.(cached.line_id);
@@ -185,6 +185,7 @@ export async function initSearch() {
 
         searchResults.querySelectorAll('.multi-station-header').forEach(header => {
             header.addEventListener('click', () => {
+                playSlideSound();
                 const sub = header.nextElementSibling;
                 const chevron = header.querySelector('.multi-chevron');
                 sub.classList.toggle('hidden');

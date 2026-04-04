@@ -71,10 +71,10 @@ export function initSettings() {
         settingsBtn.onclick = function () {
             const isOpen = !settingsContainer.classList.contains('-translate-x-full');
             if (isOpen) {
-                playOutSound(); // Play out.ogg when closing settings
+                playOutSound(); 
                 settingsContainer.classList.add('-translate-x-full', 'pointer-events-none');
             } else {
-                playInSound(); // Play in.ogg when opening settings
+                playInSound(); 
                 window.resetUI?.();
                 settingsContainer.classList.remove('-translate-x-full', 'pointer-events-none');
             }
@@ -222,12 +222,14 @@ export function initSettingsFrame() {
                     confirmBox.classList.add('scale-100');
 
                     document.getElementById('generic-confirm-cancel').onclick = () => {
+                        playReturnSound();
                         confirmModal.classList.add('opacity-0', 'pointer-events-none');
                         confirmBox.classList.add('scale-95');
                         confirmBox.classList.remove('scale-100');
                     };
 
                     document.getElementById('generic-confirm-ok').onclick = async () => {
+                        playOkSound();
                         confirmModal.classList.add('opacity-0', 'pointer-events-none');
                         confirmBox.classList.add('scale-95');
                         confirmBox.classList.remove('scale-100');
@@ -281,13 +283,11 @@ export function initSettingsFrame() {
             
             setTimeout(async () => {
                 try {
-                    // PRESERVE ESSENTIAL USER SETTINGS BEFORE CLEARING
                     const lang = localStorage.getItem(LANG_KEY);
                     const dark = localStorage.getItem(DARK_MODE_KEY);
                     const sound = localStorage.getItem(SOUND_KEY);
                     const decline = localStorage.getItem(DECLINE_REQUESTS_KEY);
 
-                    // Preserve Firebase Auth session tokens so the user is not logged out
                     const firebaseEntries = {};
                     for (let i = 0; i < localStorage.length; i++) {
                         const key = localStorage.key(i);

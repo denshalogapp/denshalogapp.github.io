@@ -5,7 +5,7 @@ import { startCamera, stopCamera } from './stamp_camera.js';
 import { CURRENT_USER_ID, CURRENT_USERNAME, IS_ANONYMOUS } from './user.js';
 import { showAuthScreen } from './auth.js';
 import { applyTranslations, t, getLanguage } from './i18n.js';
-import { playSlideSound, playOkSound, playReturnSound, playConfirm3Sound, playCameraSound } from './audio.js';
+import { playSlideSound, playOkSound, playReturnSound, playConfirm3Sound, playCameraSound, playConfirm2Sound } from './audio.js';
 
 let postsUnsubscribe = null;
 let commentsUnsubscribe = null;
@@ -19,7 +19,6 @@ let latestPosts = [];
 let currentUserFriends = [];
 let currentUserOutRequests = [];
 
-// Maps legacy English tag values (stored in old posts) to i18n keys.
 const TAG_LEGACY_MAP = {
     'New Stamp Collected': 'stamp',
     'New Train Model': 'model',
@@ -69,8 +68,6 @@ export async function initFeedFrame() {
         }
     }
 
-    // feedList is always a fresh DOM element after turbo:frame-load replaces
-    // the frame content, so re-attaching here on every call is safe and necessary.
     if (feedList) {
         feedList.removeEventListener('click', handleFeedClick);
         feedList.addEventListener('click', handleFeedClick);
@@ -215,7 +212,6 @@ function createPostElement(id, data, isDetail = false) {
     if (data.stationId || data.stationName) {
         const lang = getLanguage();
         let stationLabel = data.stationName;
-        // stationId is primaryStation.id from the feed station search; resolve to current locale.
         if (data.stationId && window.allStations) {
             if (!window.stationById) {
                 window.stationById = {};
@@ -415,6 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (closePostBtn) {
         closePostBtn.onclick = () => {
+            playReturnSound();
             document.getElementById('create-post-container').classList.add('translate-y-full', 'pointer-events-none');
             stopCamera(document.getElementById('feed-camera-feed'), document.getElementById('feed-camera-placeholder'));
         };
@@ -641,6 +638,7 @@ function openPostDetail(id) {
 }
 
 window.deleteComment = async (postId, commentId) => {
+    playReturnSound();
     await deleteDoc(doc(db, 'posts', postId, 'comments', commentId));
     await updateDoc(doc(db, 'posts', postId), {
         commentsCount: increment(-1)
@@ -659,6 +657,7 @@ function toggleYeah(id, hasYeahed) {
 }
 
 function deletePost(id) {
+    playReturnSound();
     deleteDoc(doc(db, 'posts', id));
 }
 
@@ -786,12 +785,14 @@ export function showPostToFeedPrompt(imageData, tag) {
     box.classList.add('scale-100');
 
     document.getElementById('generic-confirm-cancel').onclick = () => {
+        playReturnSound();
         modal.classList.add('opacity-0', 'pointer-events-none');
         box.classList.add('scale-95');
         box.classList.remove('scale-100');
     };
 
     document.getElementById('generic-confirm-ok').onclick = () => {
+        playOkSound();
         modal.classList.add('opacity-0', 'pointer-events-none');
         box.classList.add('scale-95');
         box.classList.remove('scale-100');

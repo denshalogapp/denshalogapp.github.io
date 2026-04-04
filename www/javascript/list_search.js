@@ -2,7 +2,7 @@ import { state, selectors } from './list_state.js';
 import { renderLines } from './list_render.js';
 import { showLineDetail } from './list_detail.js';
 import { getLanguage, t } from './i18n.js';
-import { playOkSound } from './audio.js';
+import { playOkSound, playSlideSound } from './audio.js';
 
 function escapeHtml(str) {
     return String(str)
@@ -196,6 +196,10 @@ export function handleSearch(e) {
             const lineId = item.dataset.lineId;
             const stationId = item.dataset.stationId;
 
+            if (type === 'station') {
+                playOkSound();
+            }
+
             selectors.searchDropdown.classList.add('hidden');
             selectors.searchInput.value = '';
 
@@ -219,6 +223,7 @@ export function handleSearch(e) {
 
     selectors.searchDropdown.querySelectorAll('.multi-station-header').forEach(header => {
         header.onclick = () => {
+            playSlideSound();
             const sub = header.nextElementSibling;
             const chevron = header.querySelector('.multi-chevron');
             sub.classList.toggle('hidden');

@@ -5,7 +5,7 @@ import { renderPolylines, polylines } from './map_layers.js';
 import { markers, renderVisibleMarkers as renderVisibleMarkersOnMap, updateUserMarker } from './map_markers.js';
 import { toggleStation } from './user.js';
 import { idbSet, idbGet } from './idb.js';
-import { playReturnSound, playOkSound } from './audio.js';
+import { playReturnSound, playOkSound, playSlideSound } from './audio.js';
 import { t, getLanguage } from './i18n.js';
 
 let map;
@@ -78,21 +78,15 @@ window.initMap = async function() {
 
     window.map = map;
 
-
     try {
         let stations = await idbGet('stationData');
         let lines = await idbGet('lineData');
         let joins = await idbGet('joinData');
 
-        
-        
-        
         const hasJapaneseLineNames = lines && Object.values(lines).some(l =>
             l.name_jp && /[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff]/.test(l.name_jp)
         );
         if (!stations || !lines || !joins || !hasJapaneseLineNames) {
-            
-            // 1. Wait for Firebase Auth to confirm a valid user before fetching
             await new Promise(resolve => {
                 if (auth.currentUser) return resolve();
                 const unsubscribe = auth.onAuthStateChanged(user => {
@@ -103,7 +97,6 @@ window.initMap = async function() {
                 });
             });
 
-            // 2. Fetch data (removed the unused configSnap)
             [stations, lines, joins] = await Promise.all([
                 syncStationData(),
                 syncLineData(),
@@ -198,6 +191,7 @@ window.initMap = async function() {
 
         const unmarkBtn = e.target.closest('#unmark-station-btn');
         if (unmarkBtn) {
+            playOkSound();
             window.stationToUnmark = unmarkBtn.getAttribute('data-station-id');
             document.getElementById('unmark-confirm-modal').classList.remove('opacity-0', 'pointer-events-none');
             document.getElementById('unmark-confirm-box').classList.remove('scale-95');
@@ -333,6 +327,7 @@ export function showTooltip(latLng, data, type) {
             `;
             fractionEl.style.cursor = 'pointer';
             fractionEl.onclick = () => {
+                playSlideSound();
                 hideTooltip();
                 const listContainer = document.getElementById('list-container');
                 if (listContainer && listContainer.classList.contains('translate-x-full')) {
@@ -391,12 +386,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearFilterBtn = document.getElementById('clear-filter-btn');
     if (clearFilterBtn) {
         clearFilterBtn.addEventListener('click', () => {
+            playReturnSound();
             window.clearLineFilter();
         });
     }
     
     if (cancelUnmarkBtn && confirmUnmarkBtn) {
         cancelUnmarkBtn.addEventListener('click', () => {
+            playReturnSound();
             document.getElementById('unmark-confirm-modal').classList.add('opacity-0', 'pointer-events-none');
             document.getElementById('unmark-confirm-box').classList.add('scale-95');
             document.getElementById('unmark-confirm-box').classList.remove('scale-100');

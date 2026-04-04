@@ -11,6 +11,7 @@ import { initFeedFrame } from './feed.js';
 import { SocialLogin } from '@capgo/capacitor-social-login';
 import { Capacitor } from '@capacitor/core';
 import { applyTranslations, getLanguage, setLanguage } from './i18n.js';
+import { playReturnSound, playSlideSound, playOkSound, playConfirm3Sound } from './audio.js';
 
 let isSignUpMode = false;
 let isInitialLoad = true;
@@ -73,8 +74,6 @@ export function initAuth() {
     const authAnonBtn = document.getElementById('auth-anon-btn');
     const authForgotBtn = document.getElementById('auth-forgot-password');
 
-    // Strip non-alphanumeric characters instantly as the user types
-
     if (authUsername) {
         authUsername.addEventListener('input', (e) => {
             e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
@@ -83,6 +82,7 @@ export function initAuth() {
 
     if (authCloseBtn) {
         authCloseBtn.onclick = () => {
+            playReturnSound();
             authContainer.classList.add('translate-y-full');
             setTimeout(() => {
                 if (authContainer.classList.contains('translate-y-full')) {
@@ -224,6 +224,7 @@ export function initAuth() {
                         if(authSubmitBtn) authSubmitBtn.innerText = "Save Username";
                         authForm.onsubmit = async (e) => {
                             e.preventDefault();
+                            playConfirm3Sound();
                             if(errorMsg) errorMsg.classList.add('hidden');
                             
                             const chosenName = authUsername.value.trim();
@@ -304,6 +305,7 @@ export function initAuth() {
     });
 
     authToggleMode.onclick = () => {
+        playSlideSound();
         isSignUpMode = !isSignUpMode;
         if (isSignUpMode) {
             if (authForgotBtn) authForgotBtn.classList.add('hidden');
@@ -335,6 +337,7 @@ export function initAuth() {
 
     authForm.onsubmit = async (e) => {
         e.preventDefault();
+        playConfirm3Sound();
         errorMsg.classList.add('hidden');
         
         const identifier = authIdentifier.value.trim();
@@ -381,6 +384,7 @@ export function initAuth() {
     };
 
     authGoogleBtn.onclick = async () => {
+        playOkSound();
         errorMsg.classList.add('hidden');
         
         if (isSignUpMode) {
@@ -415,16 +419,13 @@ export function initAuth() {
                 
                 const credential = GoogleAuthProvider.credential(googleUser.result.idToken);
 
-                // ONLY link if the user is in Sign Up mode
                 if (auth.currentUser && auth.currentUser.isAnonymous && isSignUpMode) {
                     await linkWithCredential(auth.currentUser, credential);
                     window.location.reload();
                 } else {
-                    // Otherwise, just log in (this abandons the guest session)
                     await signInWithCredential(auth, credential);
                 }
             } else {
-                // ONLY link if the user is in Sign Up mode
                 if (auth.currentUser && auth.currentUser.isAnonymous && isSignUpMode) {
                     try {
                         await linkWithPopup(auth.currentUser, googleProvider);
@@ -437,7 +438,6 @@ export function initAuth() {
                         }
                     }
                 } else {
-                    // Otherwise, just log in normally
                     await signInWithPopup(auth, googleProvider);
                 }
             }
@@ -448,6 +448,7 @@ export function initAuth() {
     };
 
     authAnonBtn.onclick = async () => {
+        playOkSound();
         errorMsg.classList.add('hidden');
         try {
             if (auth.currentUser && auth.currentUser.isAnonymous) {
@@ -468,6 +469,7 @@ export function initAuth() {
 
     if (authForgotBtn) {
         authForgotBtn.onclick = async () => {
+            playOkSound();
             errorMsg.classList.add('hidden');
             const identifier = authIdentifier.value.trim();
             
@@ -486,7 +488,6 @@ export function initAuth() {
             try {
                 await sendPasswordResetEmail(auth, identifier);
                 
-                // Temporarily change the text to show success without an alert popup
                 const originalText = authForgotBtn.innerText;
                 authForgotBtn.innerText = "Reset Email Sent!";
                 authForgotBtn.classList.add('text-green-500');
@@ -528,6 +529,7 @@ export function initAuthLanguageSelector() {
         
         authLangEnBtn.onclick = () => {
             if (getLanguage() !== 'en') {
+                playOkSound();
                 setLanguage('en');
                 updateAuthLangUI('en');
             }
@@ -535,6 +537,7 @@ export function initAuthLanguageSelector() {
         
         authLangJaBtn.onclick = () => {
             if (getLanguage() !== 'ja') {
+                playOkSound();
                 setLanguage('ja');
                 updateAuthLangUI('ja');
             }

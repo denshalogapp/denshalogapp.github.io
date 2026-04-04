@@ -40,6 +40,7 @@ export async function showLineDetail(lineId) {
 
     selectors.detailLineName.innerText = lineName;
     selectors.detailLineName.onclick = () => {
+        playSlideSound();
         window.filterToLine?.(lineId);
         if (stations?.length && window.map) {
             const mid = stations[Math.floor(stations.length / 2)];
@@ -225,6 +226,7 @@ export function initStampScanner() {
 
         const nameClick = e.target.closest('.station-name-click');
         if (nameClick) {
+            playSlideSound();
             const sid = nameClick.dataset.stationId;
             const lat = Number(nameClick.dataset.lat);
             const lon = Number(nameClick.dataset.lon);

@@ -3,7 +3,7 @@ import { collection, query, where, getDocs, getDoc, addDoc, onSnapshot, doc, upd
 import { showAuthScreen } from './auth.js';
 import { getVisitedStations, userStamps, CURRENT_USER_ID, CURRENT_USERNAME, IS_ANONYMOUS } from './user.js';
 import { applyTranslations, t } from './i18n.js';
-import { playConfirm1Sound, playReturnSound } from './audio.js';
+import { playConfirm1Sound, playReturnSound, playOkSound, playConfirm2Sound } from './audio.js';
 
 export function updateProfileCounts() {
     const stationsCount = document.getElementById('profile-stations-count');
@@ -29,6 +29,7 @@ export async function initProfileFrame() {
     
     if (closeBtn && profileContainer) {
         closeBtn.onclick = () => {
+            playReturnSound();
             profileContainer.classList.add('translate-x-full', 'pointer-events-none');
             window.resetUI?.();
         };
@@ -59,6 +60,7 @@ export async function initProfileFrame() {
         if (guestOverlay) {
             guestOverlay.classList.remove('hidden');
             guestOverlay.onclick = () => {
+                playOkSound();
                 if (profileContainer) profileContainer.classList.add('translate-x-full', 'pointer-events-none');
                 showAuthScreen();
             };
@@ -239,7 +241,6 @@ async function renderFriendsList(friendIds, seq, getSeq) {
     try {
         const results = await Promise.allSettled(friendIds.map(id => getDoc(doc(db, 'users', id))));
 
-        // Discard if a newer render has been triggered
         if (seq !== getSeq()) return;
 
         const friendDocs = results
