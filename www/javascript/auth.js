@@ -50,15 +50,6 @@ export function showAuthScreen() {
 export function initAuth() {
 
     const errorMsg = document.getElementById('auth-error-message');
-    getRedirectResult(auth).then((result) => {
-        if (result) console.log("Redirect success:", result.user);
-    }).catch((error) => {
-        console.error("Redirect failed:", error);
-        if (errorMsg) {
-            errorMsg.innerText = "Google Sign-In Error: " + error.message;
-            errorMsg.classList.remove('hidden');
-        }
-    });
     
     initAuthLanguageSelector();
 
@@ -209,6 +200,7 @@ export function initAuth() {
                             authPassword.classList.add('hidden');
                             authPassword.required = false;
                         }
+                        if(authForgotBtn) authForgotBtn.classList.add('hidden');
                         if(authGoogleBtn) authGoogleBtn.classList.add('hidden');
                         if(authAnonBtn) authAnonBtn.classList.add('hidden');
                         if(authToggleMode) authToggleMode.classList.add('hidden');

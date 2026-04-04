@@ -17,7 +17,7 @@ let isFollowingUser = true;
 let currentPosition = null;
 
 const JAPAN_BOUNDS = {
-    north: 46.5,
+    north: 49.5,
     south: 18.0,
     west: 121.0,
     east: 154.5

@@ -597,15 +597,44 @@ function openPostDetail(id) {
         }
         content.innerHTML = '';
         content.appendChild(createPostElement(docSnap.id, docSnap.data(), true));
+        
         const yeahBtn = content.querySelector('.yeah-btn');
         if (yeahBtn) {
             yeahBtn.onclick = () => toggleYeah(id, yeahBtn.classList.contains('bg-[#FF80AB]'));
         }
+        
         const delBtn = content.querySelector('.delete-post-btn');
         if (delBtn) {
             delBtn.onclick = () => {
                 deletePost(id);
                 cont.classList.add('translate-x-full', 'pointer-events-none');
+            };
+        }
+
+        const friendBtn = content.querySelector('.friend-btn');
+        if (friendBtn) {
+            friendBtn.onclick = () => {
+                if (IS_ANONYMOUS) {
+                    showAuthScreen();
+                    return;
+                }
+                toggleFriendRequest(friendBtn.dataset.id, friendBtn.dataset.action);
+            };
+        }
+
+        const stationTagBtn = content.querySelector('.station-tag-btn');
+        if (stationTagBtn) {
+            stationTagBtn.onclick = () => {
+                const stationId = stationTagBtn.dataset.id;
+                if (stationId && window.allStations && window.map) {
+                    const targetStation = window.allStations.find(s => String(s.id) === String(stationId) || String(s.station_id) === String(stationId));
+                    if (targetStation) {
+                        if (window.resetUI) window.resetUI();
+                        if (window.filterToLine) window.filterToLine(targetStation.line_id);
+                        window.map.panTo({ lat: Number(targetStation.lat), lng: Number(targetStation.lon) });
+                        cont.classList.add('translate-x-full', 'pointer-events-none');
+                    }
+                }
             };
         }
     });

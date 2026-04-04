@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "30607912305",
+    "project_id": "eki-story",
+    "storage_bucket": "eki-story.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30607912305:android:164866ab12ae1f327b5ad0",
+        "android_client_info": {
+          "package_name": "com.lpcmse.ekistory"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "30607912305-4v9d314rdoak40qj9chbfdjra04rn48b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXVrTxzbvi-sv5hPFts2sBr88rGm0stLE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "30607912305-4v9d314rdoak40qj9chbfdjra04rn48b.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "30607912305-8sjnev1fl3v0v33vesir7idsqdgfs9bc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.lpcmse.ekistory"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
