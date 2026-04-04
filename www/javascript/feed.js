@@ -68,16 +68,21 @@ export async function initFeedFrame() {
         }
     }
 
+    // feedList is always a fresh DOM element after turbo:frame-load replaces
+    // the frame content, so re-attaching here on every call is safe and necessary.
+    if (feedList) {
+        feedList.removeEventListener('click', handleFeedClick);
+        feedList.addEventListener('click', handleFeedClick);
+    }
+
     if (feedList && !postsUnsubscribe) {
         const postsRef = collection(db, 'posts');
         const q = query(postsRef, orderBy('timestamp', 'desc'));
-        
+
         postsUnsubscribe = onSnapshot(q, (snapshot) => {
             latestPosts = snapshot.docs;
             renderFeed();
         });
-
-        feedList.addEventListener('click', handleFeedClick);
     }
 }
 
