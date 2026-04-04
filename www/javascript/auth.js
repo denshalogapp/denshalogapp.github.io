@@ -393,10 +393,9 @@ window.dispatchEvent(new CustomEvent('authResolved'));
                 }
             } else {
                 if (auth.currentUser && auth.currentUser.isAnonymous) {
-                    await linkWithPopup(auth.currentUser, googleProvider);
-                    window.location.reload(); 
+                    await linkWithRedirect(auth.currentUser, googleProvider);
                 } else {
-                    await signInWithPopup(auth, googleProvider);
+                    await signInWithRedirect(auth, googleProvider);
                 }
             }
         } catch (err) {
