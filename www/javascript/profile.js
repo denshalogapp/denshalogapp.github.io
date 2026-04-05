@@ -236,6 +236,7 @@ export async function initProfileFrame() {
     }
 }
 
+const MY_POSTS_PAGE_SIZE = 15;
 let myPostsLast = null;
 let myPostsHasMore = false;
 let myPostsLoading = false;
@@ -263,13 +264,13 @@ async function loadMyPosts(reset = false) {
         const postsRef = collection(db, 'posts');
         let q;
         if (myPostsLast) {
-            q = query(postsRef, where('userId', '==', CURRENT_USER_ID), orderBy('timestamp', 'desc'), startAfter(myPostsLast), limit(16));
+            q = query(postsRef, where('userId', '==', CURRENT_USER_ID), orderBy('timestamp', 'desc'), startAfter(myPostsLast), limit(MY_POSTS_PAGE_SIZE + 1));
         } else {
-            q = query(postsRef, where('userId', '==', CURRENT_USER_ID), orderBy('timestamp', 'desc'), limit(16));
+            q = query(postsRef, where('userId', '==', CURRENT_USER_ID), orderBy('timestamp', 'desc'), limit(MY_POSTS_PAGE_SIZE + 1));
         }
         const snapshot = await getDocs(q);
-        myPostsHasMore = snapshot.docs.length > 15;
-        const docs = snapshot.docs.slice(0, 15);
+        myPostsHasMore = snapshot.docs.length > MY_POSTS_PAGE_SIZE;
+        const docs = snapshot.docs.slice(0, MY_POSTS_PAGE_SIZE);
         if (docs.length > 0) myPostsLast = docs[docs.length - 1];
 
         if (docs.length === 0 && reset) {
@@ -281,7 +282,7 @@ async function loadMyPosts(reset = false) {
                 el.className = 'bg-gray-100 dark:bg-slate-700 border-[3px] border-black dark:border-slate-600 rounded-2xl p-4 flex flex-col gap-2';
                 const img = data.imageUrl || data.image;
                 el.innerHTML = `
-                    ${img ? `<div class="w-full aspect-square bg-gray-200 dark:bg-slate-600 border-[2px] border-black dark:border-slate-500 overflow-hidden rounded-xl mb-1"><img src="${img}" loading="lazy" class="w-full h-full object-cover"></div>` : ''}
+                    ${img ? `<div class="w-full aspect-square bg-gray-200 dark:bg-slate-600 border-[2px] border-black dark:border-slate-500 overflow-hidden rounded-xl mb-1"><img src="${escapeHtml(img)}" loading="lazy" class="w-full h-full object-cover"></div>` : ''}
                     <p class="text-sm font-bold dark:text-gray-200 leading-snug">${escapeHtml(data.caption || '')}</p>
                     <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">${new Date(data.timestamp).toLocaleString()}</span>
                 `;

@@ -25,6 +25,7 @@ let hasMoreAll = false;
 let lastTimestampFriends = null;
 let hasMoreFriends = false;
 let isLoadingFeed = false;
+let feedLoadVersion = 0;
 
 const TAG_LEGACY_MAP = {
     'New Stamp Collected': 'stamp',
@@ -45,6 +46,7 @@ export async function initFeedFrame() {
     if (!CURRENT_USER_ID) return;
 
     applyTranslations();
+    currentFeedFilter = 'all';
 
     const newPostBtn = document.getElementById('new-post-btn');
     const feedList = document.getElementById('feed-posts-list');
@@ -117,8 +119,10 @@ function setFeedFilter(filter) {
 }
 
 async function loadFeed(filter, reset = false) {
-    if (isLoadingFeed) return;
+    // Allow reset loads to supersede in-flight non-reset loads (C2 fix)
+    if (isLoadingFeed && !reset) return;
     isLoadingFeed = true;
+    const version = ++feedLoadVersion;
 
     const list = document.getElementById('feed-posts-list');
     const loadMoreBtn = document.getElementById('feed-load-more-btn');
@@ -149,6 +153,7 @@ async function loadFeed(filter, reset = false) {
                 q = query(postsRef, orderBy('timestamp', 'desc'), limit(PAGE_SIZE + 1));
             }
             const snapshot = await getDocs(q);
+            if (version !== feedLoadVersion) return; // superseded by a newer load
             hasMoreAll = snapshot.docs.length > PAGE_SIZE;
             docs = snapshot.docs.slice(0, PAGE_SIZE);
             if (docs.length > 0) lastVisibleAll = docs[docs.length - 1];
@@ -160,6 +165,9 @@ async function loadFeed(filter, reset = false) {
             const allDocs = [];
 
             // chunk into groups of 30 (Firestore 'in' operator limit)
+            // pagination uses a timestamp cursor since multiple parallel queries
+            // can't share a single DocumentSnapshot; duplicate-ms skips are
+            // extremely rare given Date.now() granularity
             for (let i = 0; i < friendIds.length; i += 30) {
                 const chunk = friendIds.slice(i, i + 30);
                 let q;
@@ -172,6 +180,7 @@ async function loadFeed(filter, reset = false) {
                 allDocs.push(...snapshot.docs);
             }
 
+            if (version !== feedLoadVersion) return; // superseded by a newer load
             allDocs.sort((a, b) => b.data().timestamp - a.data().timestamp);
             hasMoreFriends = allDocs.length > PAGE_SIZE;
             docs = allDocs.slice(0, PAGE_SIZE);
@@ -194,7 +203,7 @@ async function loadFeed(filter, reset = false) {
     } catch (err) {
         console.error('Failed to load feed:', err);
     } finally {
-        isLoadingFeed = false;
+        if (version === feedLoadVersion) isLoadingFeed = false;
     }
 }
 
